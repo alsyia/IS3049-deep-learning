@@ -5,6 +5,11 @@ from sub_pixel import SubpixelConv2D
 import cv2
 
 # use the following name : d_ for decoder, e_ for encoder
+
+# missing normalization
+# missing mirror padding
+
+# encoder
 a = 0.3
 e_input_shape = (178,178,3)
 # input takes a normalized and mirror padded image
@@ -42,13 +47,23 @@ e = Conv2D(filters = 96, kernel_size = (5,5),padding = 'same', strides = (2,2), 
 
 encoder = Model(e_input,e)
 
-d_input_shape = (178,178,3)
+# missing round
+# missing GSM
+# missing code
+
+# decoder
+d_input_shape = (178,178,3) # will be round output_shape
+
+# scale used by subpix layer
 scale = 2
 d_input = Input(shape = d_input_shape, name = 'd_input_1')
 
 d = Conv2D(filters = 512, kernel_size = (3,3),padding = 'same', strides = (1,1), name = 'd_conv_1')(d_input)
 
 def subpixel(x):
+    """
+    function for Lambda - subpixel layer
+    """
     return tf.depth_to_space(x, scale)
 d = Lambda(function = subpixel,name = 'd_lambda_1')(d)
 
@@ -79,3 +94,10 @@ d = Conv2D(filters = 12, kernel_size = (3,3),padding = 'same', strides = (1,1), 
 d = Lambda(function = subpixel,name = 'd_lambda_3')(d)
 
 decoder = Model(d_input,d)
+
+# missing denormalization
+# missing clipping
+
+# missing loss
+
+# missing ae training
