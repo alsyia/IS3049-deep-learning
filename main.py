@@ -1,8 +1,9 @@
 from keras.layers import Input, Conv2D, Add, LeakyReLU, Lambda
 from keras.models import Model
+from keras.utils import plot_model
 import tensorflow as tf
-from sub_pixel import SubpixelConv2D
-import cv2
+# from sub_pixel import SubpixelConv2D
+# import cv2
 
 # use the following name : d_ for decoder, e_ for encoder
 
@@ -21,32 +22,52 @@ e = LeakyReLU(alpha = a, name = 'e_leaky_2')(e)
 
 skip_connection = e
 
-# residual block 1
-e = Conv2D(filters = 128, kernel_size = (3,3),padding = 'same', strides = (1,1), name = 'e_conv_3')(e)
-e = LeakyReLU(alpha = a, name = 'e_leaky_3')(e)
-e = Conv2D(filters = 128, kernel_size = (3,3),padding = 'same', strides = (1,1), name = 'e_conv_4')(e)
-e = Add(name = 'e_add_1')([e,skip_connection])
+conv_index = 3
+leaky_index = 3
+add_index = 1
 
-skip_connection = e
+res_block_conv_params = {
+    "filters": 128,
+    "kernel_size": (3,3),
+    "padding": "same",
+}
 
-# residual block 2
-e = Conv2D(filters = 128, kernel_size = (3,3),padding = 'same', strides = (1,1), name = 'e_conv_5')(e)
-e = LeakyReLU(alpha = a, name = 'e_leaky_4')(e)
-e = Conv2D(filters = 128, kernel_size = (3,3),padding = 'same', strides = (1,1), name = 'e_conv_6')(e)
-e = Add(name = 'e_add_2')([e,skip_connection])
-
-skip_connection = e
-
-# residual block 3
-e = Conv2D(filters = 128, kernel_size = (3,3),padding = 'same', strides = (1,1), name = 'e_conv_7')(e)
-e = LeakyReLU(alpha = a, name = 'e_leaky_5')(e)
-e = Conv2D(filters = 128, kernel_size = (3,3),padding = 'same', strides = (1,1), name = 'e_conv_8')(e)
-e = Add(name = 'e_add_3')([e,skip_connection])
+for i in range(3):
+    e = Conv2D(name=f"e_conv_{conv_index}", **res_block_conv_params)(e)
+    conv_index += 1
+    e = LeakyReLU(alpha=a, name=f"e_leaky_{leaky_index}")(e)
+    leaky_index += 1
+    e = Conv2D(name=f"e_conv_{conv_index}", **res_block_conv_params)(e)
+    conv_index += 1
+    e = Add(name = f"e_add_{add_index}")([e, skip_connection])
+    add_index += 1
+    skip_connection = e
+# # residual block 1
+# e = Conv2D(filters = 128, kernel_size = (3,3),padding = 'same', strides = (1,1), name = 'e_conv_3')(e)
+# e = LeakyReLU(alpha = a, name = 'e_leaky_3')(e)
+# e = Conv2D(filters = 128, kernel_size = (3,3),padding = 'same', strides = (1,1), name = 'e_conv_4')(e)
+# e = Add(name = 'e_add_1')([e,skip_connection])
+#
+# skip_connection = e
+#
+# # residual block 2
+# e = Conv2D(filters = 128, kernel_size = (3,3),padding = 'same', strides = (1,1), name = 'e_conv_5')(e)
+# e = LeakyReLU(alpha = a, name = 'e_leaky_4')(e)
+# e = Conv2D(filters = 128, kernel_size = (3,3),padding = 'same', strides = (1,1), name = 'e_conv_6')(e)
+# e = Add(name = 'e_add_2')([e,skip_connection])
+#
+# skip_connection = e
+#
+# # residual block 3
+# e = Conv2D(filters = 128, kernel_size = (3,3),padding = 'same', strides = (1,1), name = 'e_conv_7')(e)
+# e = LeakyReLU(alpha = a, name = 'e_leaky_5')(e)
+# e = Conv2D(filters = 128, kernel_size = (3,3),padding = 'same', strides = (1,1), name = 'e_conv_8')(e)
+# e = Add(name = 'e_add_3')([e,skip_connection])
 
 e = Conv2D(filters = 96, kernel_size = (5,5),padding = 'same', strides = (2,2), name = 'e_conv_9')(e)
 
 encoder = Model(e_input,e)
-
+plot_model(encoder, to_file='encoder.png')
 # missing round
 # missing GSM
 # missing code
