@@ -4,7 +4,6 @@ from keras.layers import Input, Conv2D, Add, LeakyReLU, Lambda
 from keras.models import Model
 from keras.utils import plot_model
 
-# from sub_pixel import SubpixelConv2D
 # import cv2
 
 # use the following name : d_ for decoder, e_ for encoder
