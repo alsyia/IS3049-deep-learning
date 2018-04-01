@@ -1,6 +1,7 @@
 from keras.layers import Layer
 import tensorflow as tf
 import keras.backend as K
+import numpy as np
 
 def clipping(X):
 
@@ -30,6 +31,8 @@ def rounding(X):
 
     return y
 
+def masking(x, mask):
+    return tf.multiply(x, mask)
 
 class ClippingLayer(Layer):
 
@@ -59,6 +62,26 @@ class RoundingLayer(Layer):
 
     def call(self, x, mask=None):
         return rounding(x)
+
+    def compute_output_shape(self, input_shape):
+        return input_shape
+    
+class MaskingLayer(Layer):
+    def __init__(self, **kwargs):
+        super(MaskingLayer, self).__init__()
+        self.supports_masking = False
+        self.mask_idx = kwargs["mask_idx"]
+
+    def build(self, input_shape):
+        self.trainable_weights = []
+        self.mask = np.zeros(input_shape[1:])
+        for i in range(self.mask_idx):
+            self.mask[i%input_shape[1],i//input_shape[1]%input_shape[2],:] = 1.0
+
+        super(MaskingLayer, self).build(input_shape)
+
+    def call(self, x, mask=None):
+        return tf.multiply(x,self.mask)
 
     def compute_output_shape(self, input_shape):
         return input_shape
