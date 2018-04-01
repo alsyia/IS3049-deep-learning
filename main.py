@@ -1,105 +1,47 @@
-from itertools import count
-import tensorflow as tf
-from keras.layers import Input, Conv2D, Add, LeakyReLU, Lambda
-from keras.models import Model
+import numpy as np
 from keras.utils import plot_model
+from keras.callbacks import TensorBoard
+from keras.datasets import cifar10
+from Model import build_model
+from ModelConfig import e_input_shape,img_input_shape
+from CustomLoss import loss
+from utils import mirror_padding
+from Generator import DataGenerator
 
-# import cv2
+# sess = K.get_session()
+# sess = tf_debug.TensorBoardDebugWrapperSession(sess, "PC-Wenceslas:6004")
+# K.set_session(sess)
 
-# use the following name : d_ for decoder, e_ for encoder
+# Test with CIFAR10 dataset for now, has images of size (32, 32, 3)
 
-def subpixel(x, scale=2):
-    """
-    function for Lambda - subpixel layer
-    """
-    return tf.depth_to_space(x, scale)
+(x_train, _), (x_test, _) = cifar10.load_data()
+x_train = x_train.astype('float32') / 255.
+x_test = x_test.astype('float32') / 255.
+x_train = np.reshape(x_train, (len(x_train), *img_input_shape))  # adapt this if using `channels_first` image data format
+x_test = np.reshape(x_test, (len(x_test), *img_input_shape))  # adapt this if using `channels_first` image data format
 
 
-##### Encoder model #####
+train_generator = DataGenerator(x_train,32,img_input_shape)
+test_generator = DataGenerator(x_test,32,img_input_shape)
 
-# TODO: Add normalization and mirror padding
+autoencoder = build_model()
 
-# Encoder parameters
-a = 0.3
-e_input_shape = (178, 178, 3)
-e_res_block_conv_params = {
-    "filters": 128,
-    "kernel_size": (3, 3),
-    "padding": "same",
-}
+# Plot model graph
+plot_model(autoencoder, to_file='autoencoder.png')
 
-# Counters
-conv_index = count(start=1)
-leaky_index = count(start=1)
-add_index = count(start=1)
+# Compile model with adadelta optimizer
+# TODO: Code loss !
 
-# TODO: Add normalization and padding here
-e_input = Input(shape=e_input_shape, name=f"e_input_1")
-e = Conv2D(filters=64, kernel_size=(5, 5), padding='same', strides=(2, 2), name=f"e_conv_{next(conv_index)}")(e_input)
-e = LeakyReLU(alpha=a, name=f"e_leaky_{next(leaky_index)}")(e)
-e = Conv2D(filters=128, kernel_size=(5, 5), padding='same', strides=(2, 2), name=f"e_conv_{next(conv_index)}")(e)
-e = LeakyReLU(alpha=a, name=f"e_leaky_{next(leaky_index)}")(e)
 
-skip_connection = e
+autoencoder.compile(optimizer='adadelta', loss=loss)
 
-# Create three residual blocks
-for i in range(3):
-    e = Conv2D(name=f"e_conv_{next(conv_index)}", **e_res_block_conv_params)(e)
-    e = LeakyReLU(alpha=a, name=f"e_leaky_{next(leaky_index)}")(e)
-    e = Conv2D(name=f"e_conv_{next(conv_index)}", **e_res_block_conv_params)(e)
-    e = Add(name=f"e_add_{next(add_index)}")([e, skip_connection])
-    skip_connection = e
 
-e = Conv2D(filters=96, kernel_size=(5, 5), padding='same', strides=(2, 2), name=f"e_conv_{next(conv_index)}")(e)
+# Enable tensorboard just in case
+tb = TensorBoard(log_dir='./Graph', histogram_freq=1,
+                            write_graph=True, write_images=True)
 
-encoder = Model(e_input,e)
-plot_model(encoder, to_file='encoder.png')
-
-# TODO: Round output, add GSM and codes
-
-##### Decoder model #####
-
-# Decoder parameters
-d_input_shape = (178, 178, 3)  # will be round output_shape
-d_res_block_conv_params = {
-    "filters": 128,
-    "kernel_size": (3, 3),
-    "padding": "same",
-}
-
-# Counters
-conv_index = count(start=1)
-lambda_index = count(start=1)
-leaky_index = count(start=1)
-add_index = count(start=1)
-
-d_input = Input(shape=d_input_shape, name='d_input_1')
-d = Conv2D(filters=512, kernel_size=(3, 3), padding='same', strides=(1, 1), name=f"d_conv_{next(conv_index)}")(d_input)
-d = Lambda(function=subpixel, name=f"d_lambda_{next(lambda_index)}")(d)
-
-skip_connection = d
-
-# Add three residual blocks
-for j in range(3):
-    d = Conv2D(name=f"d_conv_{next(conv_index)}", **d_res_block_conv_params)(d)
-    d = LeakyReLU(alpha=a, name=f"d_leaky_{next(leaky_index)}")(d)
-    d = Conv2D(name=f"d_conv_{next(conv_index)}", **d_res_block_conv_params)(d)
-    d = Add(name=f"d_add_{next(add_index)}")([d, skip_connection])
-    skip_connection = d
-
-d = Conv2D(filters=256, kernel_size=(3, 3), padding='same', strides=(1, 1), name=f"d_conv_{next(conv_index)}")(d)
-d = Lambda(function=subpixel, name=f"d_lambda_{next(lambda_index)}")(d)
-
-d = Conv2D(filters=12, kernel_size=(3, 3), padding='same', strides=(1, 1), name=f"d_conv_{next(conv_index)}")(d)
-d = Lambda(function=subpixel, name=f"d_lambda_{next(lambda_index)}")(d)
-
-decoder = Model(d_input, d)
-plot_model(decoder, to_file='decoder.png')
-
-# TODO: Add denormalization and clipping
-
-##### Loss #####
-# TODO: Add loss
-
-##### Training #####
-# TODO: Add training
+# Train model !
+autoencoder.fit_generator(train_generator,
+                epochs=50,
+                validation_data=test_generator,
+                callbacks=[tb])
