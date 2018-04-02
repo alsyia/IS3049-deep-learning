@@ -34,7 +34,7 @@ class DataGenerator(keras.utils.Sequence):
         X_padded, X_mean, X_std, X = self.__data_generation(img_temp)
 
         mask = np.zeros((self.batch_size,img_input_shape[0]//8,img_input_shape[1]//8,96))
-
+        print("generating mask with {} 1".format(self.mask_idx))
         for i in range(self.mask_idx):
             mask[:,i%mask.shape[1],i//mask.shape[1]%mask.shape[2],:] = 1.0
 

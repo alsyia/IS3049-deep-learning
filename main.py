@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from keras.utils import plot_model
-from keras.callbacks import TensorBoard
+from keras.callbacks import TensorBoard, EarlyStopping
 from keras.datasets import cifar10
 from Model import build_model
 from ModelConfig import e_input_shape,img_input_shape
@@ -9,12 +9,12 @@ from CustomLoss import loss
 from utils import mirror_padding
 from Generator import DataGenerator
 from CustomCallback import IncrementalMask
-# sess = K.get_session()
-# sess = tf_debug.TensorBoardDebugWrapperSession(sess, "PC-Wenceslas:6004")
-# K.set_session(sess)
 
-# Test with CIFAR10 dataset for now, has images of size (32, 32, 3)
-
+import keras.backend as K
+from tensorflow.python import debug as tf_debug
+sess = K.get_session()
+sess = tf_debug.LocalCLIDebugWrapperSession(sess)
+K.set_session(sess)
 
 img_list = os.listdir("data")
 train_ratio = 0.7
@@ -33,7 +33,7 @@ img_train = [img_list[i] for i in indices[:train_index]]
 img_val = [img_list[i] for i in indices[train_index:val_index]]
 img_test = [img_list[i] for i in indices[val_index:]]
 
-train_generator = DataGenerator("data",img_train,32,img_input_shape)
+train_generator = DataGenerator("data",img_train,7,img_input_shape)
 test_generator = DataGenerator("data",img_test,len(img_test),img_input_shape)
 
 
@@ -48,10 +48,14 @@ plot_model(autoencoder, to_file='autoencoder.png')
 # TODO: Code loss !
 autoencoder.compile(optimizer='adadelta', loss=loss)
 
-incremental = IncrementalMask(96*96, train_generator)
+
 # Train model !
-autoencoder.fit_generator(train_generator,
-                steps_per_epoch = len(img_train)//32,
-                epochs=50,
-                validation_data=(test_generator[0]),
-                callbacks = [incremental])
+while train_generator.mask_idx < (img_input_shape[0]//8-1)**2:
+    tensorboard = TensorBoard(log_dir='./logs', histogram_freq=0, batch_size=32)
+    early_stopping = EarlyStopping(monitor='val_loss', min_delta=1e-2, patience=5, verbose=0, mode='auto')
+    autoencoder.fit_generator(train_generator,
+                    epochs=100,
+                    validation_data=(test_generator[0]),
+                    callbacks = [tensorboard,early_stopping])
+    train_generator.mask_idx += 1
+    test_generator.mask_idx += 1

@@ -35,8 +35,8 @@ class IncrementalMask(Callback):
         min_lr: lower bound on the learning rate.
     """
 
-    def __init__(self, max_idx,generator,monitor='val_loss', patience=10,
-                 verbose=0, mode='auto', min_delta=1e-4, cooldown=0,
+    def __init__(self, max_idx,generators,monitor='val_loss', patience=10,
+                 verbose=0, mode='auto', min_delta=1e-2, cooldown=0,
                  **kwargs):
         super(IncrementalMask, self).__init__()
 
@@ -51,7 +51,7 @@ class IncrementalMask(Callback):
         self.mode = mode
         self.monitor_op = None
         self.max_idx = max_idx
-        self.generator = generator
+        self.generators = generators
         self._reset()
 
     def _reset(self):
@@ -96,10 +96,11 @@ class IncrementalMask(Callback):
             elif not self.in_cooldown():
                 self.wait += 1
                 if self.wait >= self.patience:
-
-                    if self.generator.mask_idx < self.max_idx-1:
-                        self.generator.mask_idx += 1
-                        print("adding 1 cell to mask with now {}".format(self.generator.mask_idx))
+                    step = 10
+                    if self.generators[0].mask_idx < self.max_idx-step:
+                        for generator in self.generators:
+                            generator.mask_idx += step
+                        print("adding 1 cell to mask with now {}".format(self.generators[0].mask_idx))
                         self.cooldown_counter = self.cooldown
                         self.wait = 0
 
