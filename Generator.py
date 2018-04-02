@@ -16,6 +16,7 @@ class DataGenerator(keras.utils.Sequence):
         self.len_data = len(img_list)
         self.shuffle = shuffle
         self.on_epoch_end()
+        self.mask_idx = 2
 
     def __len__(self):
         'Denotes the number of batches per epoch'
@@ -32,7 +33,12 @@ class DataGenerator(keras.utils.Sequence):
         # Generate data
         X_padded, X_mean, X_std, X = self.__data_generation(img_temp)
 
-        return [X_padded, X_mean ,X_std], X
+        mask = np.zeros((self.batch_size,img_input_shape[0]//8,img_input_shape[1]//8,96))
+
+        for i in range(self.mask_idx):
+            mask[:,i%mask.shape[1],i//mask.shape[1]%mask.shape[2],:] = 1.0
+
+        return [X_padded, X_mean ,X_std, mask], X
 
     def on_epoch_end(self):
         'Updates indexes after each epoch'

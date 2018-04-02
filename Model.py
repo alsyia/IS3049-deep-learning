@@ -33,14 +33,15 @@ def encoder(e_input):
 
     return encoded
 
-def decoder(encoded,d_mean,d_std):
+def decoder(encoded,d_mean,d_std, mask):
     # Counters
     conv_index = count(start=1)
     lambda_index = count(start=1)
     leaky_index = count(start=1)
     add_index = count(start=1)
 
-    d = Conv2D(filters=512, kernel_size=(3, 3), padding='same', strides=(1, 1), name=f"d_conv_{next(conv_index)}")(encoded)
+    d = Multiply()([encoded,mask])
+    d = Conv2D(filters=512, kernel_size=(3, 3), padding='same', strides=(1, 1), name=f"d_conv_{next(conv_index)}")(d)
     d = Lambda(function=subpixel, name=f"d_lambda_{next(lambda_index)}")(d)
 
     d_skip_connection = d
@@ -71,4 +72,5 @@ def build_model():
     e_input = Input(shape=e_input_shape, name="e_input_1")
     d_mean = Input(shape=(3,), name="d_input_2")
     d_std = Input(shape=(3,), name="d_input_3")
-    return Model([e_input,d_mean,d_std],decoder(encoder(e_input),d_mean,d_std))
+    mask = Input(shape=(img_input_shape[0]//8,img_input_shape[1]//8,96,), name="d_input_4")
+    return Model([e_input,d_mean,d_std, mask],decoder(encoder(e_input),d_mean,d_std, mask))
