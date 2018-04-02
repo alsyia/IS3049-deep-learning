@@ -1,7 +1,7 @@
 from itertools import count
-from keras.layers import Input, Conv2D, Add, LeakyReLU, Lambda, Multiply
+from keras.layers import Input, Conv2D, Add, LeakyReLU, Lambda, Multiply, Reshape
 from keras.models import Model
-from CustomLayers import ClippingLayer, RoundingLayer
+from CustomLayers import ClippingLayer, RoundingLayer, MeanLayer, StdLayer, MirrorPaddingLayer, MultiplyLayer
 from ModelConfig import *
 from utils import subpixel
 
@@ -13,7 +13,12 @@ def encoder(e_input):
     leaky_index = count(start=1)
     add_index = count(start=1)
 
-    e = Conv2D(filters=64, kernel_size=(5, 5), padding='valid', strides=(2, 2), name=f"e_conv_{next(conv_index)}")(e_input)
+    e_mean = MeanLayer()(e_input)
+    e_std = StdLayer()(e_input)
+
+    e = MirrorPaddingLayer()(e_input)
+
+    e = Conv2D(filters=64, kernel_size=(5, 5), padding='valid', strides=(2, 2), name=f"e_conv_{next(conv_index)}")(e)
     e = LeakyReLU(alpha=a, name=f"e_leaky_{next(leaky_index)}")(e)
     e = Conv2D(filters=128, kernel_size=(5, 5), padding='valid', strides=(2, 2), name=f"e_conv_{next(conv_index)}")(e)
     e = LeakyReLU(alpha=a, name=f"e_leaky_{next(leaky_index)}")(e)
@@ -31,17 +36,17 @@ def encoder(e_input):
     e = Conv2D(filters=96, kernel_size=(5, 5), padding='valid', strides=(2, 2), name=f"e_conv_{next(conv_index)}")(e)
     encoded = RoundingLayer()(e)
 
-    return encoded
+    return [encoded,e_mean,e_std]
 
-def decoder(encoded,d_mean,d_std, mask):
+def decoder(encoded_list, mask):
     # Counters
     conv_index = count(start=1)
     lambda_index = count(start=1)
     leaky_index = count(start=1)
     add_index = count(start=1)
 
-    d = Multiply()([encoded,mask])
-    d = Conv2D(filters=512, kernel_size=(3, 3), padding='same', strides=(1, 1), name=f"d_conv_{next(conv_index)}")(d)
+    #d = Multiply()([encoded,mask])
+    d = Conv2D(filters=512, kernel_size=(3, 3), padding='same', strides=(1, 1), name=f"d_conv_{next(conv_index)}")(encoded_list[0])
     d = Lambda(function=subpixel, name=f"d_lambda_{next(lambda_index)}")(d)
 
     d_skip_connection = d
@@ -60,17 +65,17 @@ def decoder(encoded,d_mean,d_std, mask):
     d = Conv2D(filters=12, kernel_size=(3, 3), padding='same', strides=(1, 1), name=f"d_conv_{next(conv_index)}")(d)
     d = Lambda(function=subpixel, name=f"d_lambda_{next(lambda_index)}")(d)
 
+
     # Denormalize
-    d = Multiply()([d,d_std])
-    d = Add()([d,d_mean])
+    d = MultiplyLayer()([encoded_list[1],d])
+
+    d = Add()([d,encoded_list[2]])
 
     decoded = ClippingLayer()(d)
 
     return decoded
 
 def build_model():
-    e_input = Input(shape=e_input_shape, name="e_input_1")
-    d_mean = Input(shape=(3,), name="d_input_2")
-    d_std = Input(shape=(3,), name="d_input_3")
-    mask = Input(shape=(img_input_shape[0]//8,img_input_shape[1]//8,96,), name="d_input_4")
-    return Model([e_input,d_mean,d_std, mask],decoder(encoder(e_input),d_mean,d_std, mask))
+    e_input = Input(shape=img_input_shape, name="e_input_1")
+    mask = Input(shape=(img_input_shape[0]//8,img_input_shape[1]//8,96,), name="d_input_mask")
+    return Model([e_input,mask],decoder(encoder(e_input), mask))

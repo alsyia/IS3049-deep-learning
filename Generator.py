@@ -15,8 +15,14 @@ class DataGenerator(keras.utils.Sequence):
         self.folder = folder
         self.len_data = len(img_list)
         self.shuffle = shuffle
-        self.on_epoch_end()
+
         self.mask_idx = 2
+        self.mask = np.zeros((self.batch_size,img_input_shape[0]//8,img_input_shape[1]//8,96))
+        for i in range(self.mask_idx):
+            self.mask[:,i%self.mask.shape[1],i//self.mask.shape[1]%self.mask.shape[2],:] = 1.0
+        self.update_mask = False
+        self.on_epoch_end()
+
 
     def __len__(self):
         'Denotes the number of batches per epoch'
@@ -31,18 +37,20 @@ class DataGenerator(keras.utils.Sequence):
         img_temp = [self.img_list[k] for k in indexes]
 
         # Generate data
-        X_padded, X_mean, X_std, X = self.__data_generation(img_temp)
-
-        mask = np.zeros((self.batch_size,img_input_shape[0]//8,img_input_shape[1]//8,96))
-        print("generating mask with {} 1".format(self.mask_idx))
-        for i in range(self.mask_idx):
-            mask[:,i%mask.shape[1],i//mask.shape[1]%mask.shape[2],:] = 1.0
-
-        return [X_padded, X_mean ,X_std, mask], X
+        X = self.__data_generation(img_temp)
+        return [X, self.mask], X
 
     def on_epoch_end(self):
         'Updates indexes after each epoch'
         self.indexes = np.arange(self.len_data)
+        
+
+        if self.update_mask:
+            print("generating mask with {} 1".format(self.mask_idx))
+            for i in range(self.mask_idx):
+                self.mask[:,i%self.mask.shape[1],i//self.mask.shape[1]%self.mask.shape[2],:] = 1.0
+            self.update_mask = False
+        
         if self.shuffle == True:
             np.random.shuffle(self.indexes)
 
@@ -51,21 +59,11 @@ class DataGenerator(keras.utils.Sequence):
         # Initialization
         X = np.empty((self.batch_size, *self.dim))
 
-        # compute the dimension after padding
-        padded_shape = (self.dim[0]+2*mirror,self.dim[1]+2*mirror,self.dim[2])
-        X_padded = np.empty((self.batch_size, *padded_shape ))
-        X_mean = np.empty((self.batch_size,3))
-        X_std = np.empty((self.batch_size,3))
-
         # Generate data
         for i in range(len(img_temp)):
             # Store sample
             img = PIL.Image.open(self.folder + "/" + img_temp[i])
-            img = img.resize(img_input_shape[0:2], PIL.Image.ANTIALIAS)
-            X[i,] = img
-            X_mean[i,] = np.mean(X[i,],axis = (0,1))
-            X_std[i,] = np.std(X[i,], axis = (0,1))
-            X[i,] = (X[i,]-X_mean[i,])/X_std[i,]
-            X_padded[i,] = mirror_padding(X[i,],mirror)
+            X[i,] = np.asarray(img)
 
-        return X_padded, X_mean, X_std, X
+
+        return X

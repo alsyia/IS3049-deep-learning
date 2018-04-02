@@ -3,37 +3,6 @@ import numpy as np
 import warnings
 
 class IncrementalMask(Callback):
-    """Reduce learning rate when a metric has stopped improving.
-    Models often benefit from reducing the learning rate by a factor
-    of 2-10 once learning stagnates. This callback monitors a
-    quantity and if no improvement is seen for a 'patience' number
-    of epochs, the learning rate is reduced.
-    # Example
-    ```python
-    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2,
-                                  patience=5, min_lr=0.001)
-    model.fit(X_train, Y_train, callbacks=[reduce_lr])
-    ```
-    # Arguments
-        monitor: quantity to be monitored.
-        factor: factor by which the learning rate will
-            be reduced. new_lr = lr * factor
-        patience: number of epochs with no improvement
-            after which learning rate will be reduced.
-        verbose: int. 0: quiet, 1: update messages.
-        mode: one of {auto, min, max}. In `min` mode,
-            lr will be reduced when the quantity
-            monitored has stopped decreasing; in `max`
-            mode it will be reduced when the quantity
-            monitored has stopped increasing; in `auto`
-            mode, the direction is automatically inferred
-            from the name of the monitored quantity.
-        min_delta: threshold for measuring the new optimum,
-            to only focus on significant changes.
-        cooldown: number of epochs to wait before resuming
-            normal operation after lr has been reduced.
-        min_lr: lower bound on the learning rate.
-    """
 
     def __init__(self, max_idx,generators,monitor='val_loss', patience=10,
                  verbose=0, mode='auto', min_delta=1e-2, cooldown=0,
@@ -100,6 +69,7 @@ class IncrementalMask(Callback):
                     if self.generators[0].mask_idx < self.max_idx-step:
                         for generator in self.generators:
                             generator.mask_idx += step
+                            generator.update_mask = True
                         print("adding 1 cell to mask with now {}".format(self.generators[0].mask_idx))
                         self.cooldown_counter = self.cooldown
                         self.wait = 0

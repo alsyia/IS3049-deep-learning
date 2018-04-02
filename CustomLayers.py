@@ -66,22 +66,64 @@ class RoundingLayer(Layer):
     def compute_output_shape(self, input_shape):
         return input_shape
     
-class MaskingLayer(Layer):
+class MeanLayer(Layer):
     def __init__(self, **kwargs):
-        super(MaskingLayer, self).__init__()
+        super(MeanLayer, self).__init__()
         self.supports_masking = False
-        self.mask_idx = kwargs["mask_idx"]
 
     def build(self, input_shape):
         self.trainable_weights = []
-        self.mask = np.zeros(input_shape[1:])
-        for i in range(self.mask_idx):
-            self.mask[i%input_shape[1],i//input_shape[1]%input_shape[2],:] = 1.0
-
-        super(MaskingLayer, self).build(input_shape)
+        super(MeanLayer, self).build(input_shape)
 
     def call(self, x, mask=None):
-        return tf.multiply(x,self.mask)
+        return tf.reshape(tf.reduce_mean(x,axis = (1,2)),(-1,1,1,3))
 
     def compute_output_shape(self, input_shape):
         return input_shape
+
+class StdLayer(Layer):
+    def __init__(self, **kwargs):
+        super(StdLayer, self).__init__()
+        self.supports_masking = False
+
+    def build(self, input_shape):
+        self.trainable_weights = []
+        super(StdLayer, self).build(input_shape)
+
+    def call(self, x, mask=None):
+        return tf.reshape(tf.keras.backend.std(x,axis = (1,2)),(-1,1,1,3))
+
+    def compute_output_shape(self, input_shape):
+        return input_shape
+
+class MirrorPaddingLayer(Layer):
+    def __init__(self, **kwargs):
+        super(MirrorPaddingLayer, self).__init__()
+        self.supports_masking = False
+
+    def build(self, input_shape):
+        self.trainable_weights = []
+        super(MirrorPaddingLayer, self).build(input_shape)
+
+    def call(self, x, mask=None):
+        paddings = tf.constant([[0,0],[12,12],[12,12],[0,0]])
+        return tf.pad(x, paddings = paddings, mode = "REFLECT")
+
+    def compute_output_shape(self, input_shape):
+        return input_shape
+
+class MultiplyLayer(Layer):
+    def __init__(self, **kwargs):
+        super(MultiplyLayer, self).__init__()
+        self.supports_masking = False
+
+    def build(self, input_shape):
+        self.trainable_weights = []
+        super(MultiplyLayer, self).build(input_shape)
+
+    def call(self, x, mask=None):
+        return tf.multiply(x[0],x[1])
+
+    def compute_output_shape(self, input_shape):
+        return input_shape
+

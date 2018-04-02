@@ -3,9 +3,16 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.png
+*.jpg
+
+logs/
 .idea/
 Graph/
-data/
+
+# weights extensions
+*.h5
+*.hdf5
+
 # C extensions
 *.so
 
