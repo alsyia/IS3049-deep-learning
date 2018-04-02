@@ -1,3 +1,4 @@
 keras
 pydot
 tensorflow
+pillow
