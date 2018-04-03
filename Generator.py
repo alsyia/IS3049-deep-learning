@@ -50,7 +50,6 @@ class DataGenerator(keras.utils.Sequence):
             # Store sample
             img = PIL.Image.open(self.folder + "/" + img_temp[i])
             img = img.resize(img_input_shape[0:2], PIL.Image.ANTIALIAS)
-            X[i,] = img
-
-
+            img = np.asarray(img)
+            X[i,] = img/255
         return X
