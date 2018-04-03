@@ -60,7 +60,7 @@ else:
 values = Values()
 
 tensorboard = TensorBoard(log_dir='./logs/run' + str(log_index), histogram_freq=0, batch_size=32)
-early_stopping = EarlyStopping(monitor='val_loss', min_delta=1e-3, patience=20, verbose=0, mode='auto')
+early_stopping = EarlyStopping(monitor='val_loss', min_delta=1e-5, patience=20, verbose=1, mode='auto')
 checkpoint = ModelCheckpoint("weights.hdf5", save_best_only=True)
 encodercheckpoint = EncoderCheckpoint("encoder.hdf5", save_best_only=True)
 tensorboard_image = TensorBoardImage("Reconstruction", test_list=test_list, logs_path='./logs/run' + str(log_index))
