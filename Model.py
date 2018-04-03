@@ -1,7 +1,7 @@
 from itertools import count
 from keras.layers import Input, Conv2D, Add, LeakyReLU, Lambda, Multiply, Reshape
 from keras.models import Model
-from CustomLayers import ClippingLayer, RoundingLayer, MeanLayer, StdLayer, MirrorPaddingLayer, MultiplyLayer
+from CustomLayers import ClippingLayer, RoundingLayer, MeanLayer, StdLayer, MirrorPaddingLayer, MultiplyLayer, NormalizeLayer
 from ModelConfig import *
 from utils import subpixel
 
@@ -16,6 +16,7 @@ def encoder(e_input):
     e_mean = MeanLayer()(e_input)
     e_std = StdLayer()(e_input)
 
+    e = NormalizeLayer()([e_input,e_mean,e_std])
     e = MirrorPaddingLayer()(e_input)
 
     e = Conv2D(filters=64, kernel_size=(5, 5), padding='valid', strides=(2, 2), name=f"e_conv_{next(conv_index)}")(e)
@@ -34,9 +35,9 @@ def encoder(e_input):
         e_skip_connection = e
 
     e = Conv2D(filters=96, kernel_size=(5, 5), padding='valid', strides=(2, 2), name=f"e_conv_{next(conv_index)}")(e)
-    encoded = RoundingLayer()(e)
+    #e = RoundingLayer()(e)
 
-    return [encoded,e_mean,e_std]
+    return [e,e_mean,e_std]
 
 def decoder(encoded_list, mask):
     # Counters
@@ -71,9 +72,9 @@ def decoder(encoded_list, mask):
 
     d = Add()([d,encoded_list[2]])
 
-    decoded = ClippingLayer()(d)
+    #d = ClippingLayer()(d)
 
-    return decoded
+    return d
 
 def build_model():
     e_input = Input(shape=img_input_shape, name="e_input_1")

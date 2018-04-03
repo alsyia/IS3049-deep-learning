@@ -127,3 +127,17 @@ class MultiplyLayer(Layer):
     def compute_output_shape(self, input_shape):
         return input_shape
 
+class NormalizeLayer(Layer):
+    def __init__(self, **kwargs):
+        super(NormalizeLayer, self).__init__()
+        self.supports_masking = False
+
+    def build(self, input_shape):
+        self.trainable_weights = []
+        super(NormalizeLayer, self).build(input_shape)
+
+    def call(self, x, mask=None):
+        return tf.divide(tf.subtract(x[0],x[1]),x[2])
+
+    def compute_output_shape(self, input_shape):
+        return input_shape
