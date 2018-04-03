@@ -56,7 +56,7 @@ class TensorBoardImage(Callback):
 
         for idx, img_name in enumerate(self.test_list[:2]):
 
-            path = "./working_data/test/"+img_name
+            path = dataset_path+"/"+test_dir+"/"+img_name
 
             input = image_to_input(path)
             output = self.model.predict(input)

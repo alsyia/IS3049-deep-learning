@@ -8,7 +8,7 @@ from CustomCallbacks import TensorBoardImage
 from CustomLoss import loss
 from Generator import DataGenerator
 from Model import build_model
-from ModelConfig import img_input_shape
+from ModelConfig import img_input_shape, dataset_path, train_dir, validation_dir, test_dir
 
 # sess = K.get_session()
 # sess = tf_debug.TensorBoardDebugWrapperSession(sess, "PC-Wenceslas:6004")
@@ -16,16 +16,16 @@ from ModelConfig import img_input_shape
 
 # Test with CIFAR10 dataset for now, has images of size (32, 32, 3)
 
-train_list = os.listdir("working_data/train")
-val_list = os.listdir("working_data/val")
-test_list = os.listdir("working_data/test")
+train_list = os.listdir(dataset_path+"/"+train_dir)
+val_list = os.listdir(dataset_path+"/"+validation_dir)
+test_list = os.listdir(dataset_path+"/"+test_dir)
 
 train_ratio = 0.7
 val_ratio = 0.2
 
 
-train_generator = DataGenerator("working_data/train",train_list,32,img_input_shape)
-test_generator = DataGenerator("working_data/val",val_list,32,img_input_shape)
+train_generator = DataGenerator(dataset_path+"/"+train_dir,train_list,32,img_input_shape)
+test_generator = DataGenerator(dataset_path+"/"+validation_dir,val_list,32,img_input_shape)
 
 autoencoder = build_model()
 

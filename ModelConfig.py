@@ -1,3 +1,9 @@
+# Dataset
+dataset_path = "./working_data"
+test_dir = "test"
+train_dir = "train"
+validation_dir = "val"
+
 # Encoder
 a = 0.3 # Leaky ReLu alpha value
 mirror = 12 # number of zeros on one side added by mirror padding (see Generator)
