@@ -22,25 +22,26 @@ x_train = np.reshape(x_train, (len(x_train), *img_input_shape))  # adapt this if
 x_test = np.reshape(x_test, (len(x_test), *img_input_shape))  # adapt this if using `channels_first` image data format
  """
 
-img_list = os.listdir("data")
+train_list = os.listdir("working_data/train")
+val_list = os.listdir("working_data/val")
 train_ratio = 0.7
 val_ratio = 0.2
 
-seed = np.random.seed(8)
-indices = np.arange(len(img_list))
-indices = np.random.permutation(indices)
-
-train_index = int(train_ratio*len(img_list))
-val_index = int(train_ratio*len(img_list))+int(val_ratio*len(img_list))
-
-
-img_train = [img_list[i] for i in indices[:train_index]]
-img_val = [img_list[i] for i in indices[train_index:val_index]]
-img_test = [img_list[i] for i in indices[val_index:]]
+# seed = np.random.seed(8)
+# indices = np.arange(len(img_list))
+# indices = np.random.permutation(indices)
+#
+# train_index = int(train_ratio*len(img_list))
+# val_index = int(train_ratio*len(img_list))+int(val_ratio*len(img_list))
 
 
-train_generator = DataGenerator("data",img_train,32,img_input_shape)
-test_generator = DataGenerator("data",img_test,32,img_input_shape)
+# img_train = [img_list[i] for i in indices[:train_index]]
+# img_val = [img_list[i] for i in indices[train_index:val_index]]
+# img_test = [img_list[i] for i in indices[val_index:]]
+
+
+train_generator = DataGenerator("working_data/train",train_list,32,img_input_shape)
+test_generator = DataGenerator("working_data/val",val_list,32,img_input_shape)
 
 autoencoder = build_model()
 
