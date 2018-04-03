@@ -8,6 +8,7 @@ from ModelConfig import e_input_shape,img_input_shape
 from CustomLoss import loss
 from utils import mirror_padding
 from Generator import DataGenerator
+from keras.optimizers import Adam
 
 # sess = K.get_session()
 # sess = tf_debug.TensorBoardDebugWrapperSession(sess, "PC-Wenceslas:6004")
@@ -26,14 +27,16 @@ test_generator = DataGenerator("working_data/val",val_list,32,img_input_shape)
 
 autoencoder = build_model()
 
-print("encoding image into vector with shape {}".format(autoencoder.get_layer('conv_9').get_shape()))
+print("encoding image into vector with shape {}".format(autoencoder.get_layer('e_conv_9').output_shape))
 
 # Plot model graph
 plot_model(autoencoder, to_file='autoencoder.png')
 
 # Compile model with adadelta optimizer
 # TODO: Code loss !
-autoencoder.compile(optimizer='adadelta', loss=loss)
+
+optimizer = Adam(lr =  1e-4, clipnorm = 1)
+autoencoder.compile(optimizer=optimizer, loss=loss)
 
 # Train model !
 autoencoder.fit_generator(train_generator,
