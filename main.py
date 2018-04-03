@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from keras.utils import plot_model
-from keras.callbacks import TensorBoard
+from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping
 from keras.datasets import cifar10
 from Model import build_model
 from ModelConfig import e_input_shape,img_input_shape
@@ -38,7 +38,12 @@ plot_model(autoencoder, to_file='autoencoder.png')
 optimizer = Adam(lr =  1e-4, clipnorm = 1)
 autoencoder.compile(optimizer=optimizer, loss=loss)
 
+tensorboard = TensorBoard(log_dir='./logs', histogram_freq=0, batch_size=32)
+early_stopping = EarlyStopping(monitor='val_loss', min_delta=1e-3, patience=20, verbose=0, mode='auto')
+checkpoint = ModelCheckpoint("weights.hdf5", save_best_only=True)
+
 # Train model !
 autoencoder.fit_generator(train_generator,
                 epochs=50,
-                validation_data=test_generator)
+                validation_data=test_generator,
+                callbacks = [tensorboard,early_stopping,checkpoint])
