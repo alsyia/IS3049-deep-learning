@@ -1,5 +1,5 @@
 # Dataset
-dataset_path = "./working_data"
+dataset_path = "./cifar10"
 test_dir = "test"
 train_dir = "train"
 validation_dir = "val"
@@ -25,5 +25,6 @@ d_res_block_conv_params = {  # Parameters of residual blocks
 
 # Loss
 loss_params = {
-    "beta": 1
+    "mse": 1,
+    "bit": 0
 }

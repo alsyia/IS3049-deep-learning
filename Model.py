@@ -45,6 +45,7 @@ def decoder(encoded):
     leaky_index = count(start=1)
     add_index = count(start=1)
 
+
     d = Conv2D(filters=512, kernel_size=(3, 3), padding='same', strides=(1, 1), name="d_conv_" + str(next(conv_index)))(
         encoded)
     d = Lambda(function=subpixel, name="d_lambda_" + str(next(lambda_index)))(d)
@@ -69,9 +70,12 @@ def decoder(encoded):
 
     d = ClippingLayer(0, 1)(d)
 
-    return d
+    return d, encoded
 
 
 def build_model():
     e_input = Input(shape=e_input_shape, name="e_input_1")
-    return Model(e_input, decoder(encoder(e_input)))
+    encodeur = Model(e_input,encoder(e_input))
+    d, code = decoder(encodeur(e_input))
+    autoencodeur = Model(e_input,[d,code])
+    return autoencodeur

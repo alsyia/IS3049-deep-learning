@@ -31,9 +31,9 @@ class DataGenerator(keras.utils.Sequence):
         img_temp = [self.img_list[k] for k in indexes]
 
         # Generate data
-        X = self.__data_generation(img_temp)
+        X, B = self.__data_generation(img_temp)
 
-        return X, X
+        return X, [X, B]
 
     def on_epoch_end(self):
         'Updates indexes after each epoch'
@@ -45,7 +45,7 @@ class DataGenerator(keras.utils.Sequence):
         'Generates data containing batch_size samples'  # X : (n_samples, *dim)
         # Initialization
         X = np.empty((self.batch_size, *self.dim))
-
+        B = np.empty((self.batch_size, 32,32,3))
         # Generate data
         for i in range(len(img_temp)):
             # Store sample
@@ -53,4 +53,8 @@ class DataGenerator(keras.utils.Sequence):
             img = img.resize(img_input_shape[0:2], PIL.Image.ANTIALIAS)
             img = np.asarray(img)
             X[i,] = img / 255
-        return X
+
+            # B sert juste à avoir une coherence entre les sorties du réseau et les verites terrains
+            # il est rempli de 0
+            B[i,] = 0
+        return X, B
