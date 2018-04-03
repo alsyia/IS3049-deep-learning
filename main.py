@@ -37,7 +37,7 @@ plot_model(autoencoder, to_file='autoencoder.png')
 # Compile model with adadelta optimizer
 # TODO: Code loss !
 
-optimizer = Adam(lr =  1e-4, clipnorm = 1)
+optimizer = Adam(lr=1e-4, clipnorm=1)
 autoencoder.compile(optimizer=optimizer, loss=loss)
 
 # Get last log
@@ -49,14 +49,14 @@ else:
     indexes = [run[-1] for run in run_list]
     log_index = str(int(max(indexes)) + 1)
 
-tensorboard = TensorBoard(log_dir='./logs/run'+str(log_index), histogram_freq=0, batch_size=32)
+tensorboard = TensorBoard(log_dir='./logs/run' + str(log_index), histogram_freq=0, batch_size=32)
 early_stopping = EarlyStopping(monitor='val_loss', min_delta=1e-3, patience=20, verbose=0, mode='auto')
 checkpoint = ModelCheckpoint("weights.hdf5", save_best_only=True)
-tensorboard_image = TensorBoardImage("Reconstruction", test_list=test_list, logs_path='./logs/run'+str(log_index))
+tensorboard_image = TensorBoardImage("Reconstruction", test_list=test_list, logs_path='./logs/run' + str(log_index))
 img = test_generator[0][0]
 
 # Train model !
 autoencoder.fit_generator(train_generator,
-                epochs=50,
-                validation_data=test_generator,
-                callbacks = [tensorboard, early_stopping, checkpoint, tensorboard_image])
+                          epochs=50,
+                          validation_data=test_generator,
+                          callbacks=[tensorboard, early_stopping, checkpoint, tensorboard_image])

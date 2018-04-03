@@ -7,7 +7,8 @@ from ModelConfig import *
 
 class DataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
-    def __init__(self, folder,img_list, batch_size=32, dim=(32,32,3), shuffle=True):
+
+    def __init__(self, folder, img_list, batch_size=32, dim=(32, 32, 3), shuffle=True):
         'Initialization'
         self.dim = dim
         self.batch_size = batch_size
@@ -24,7 +25,7 @@ class DataGenerator(keras.utils.Sequence):
     def __getitem__(self, index):
         'Generate one batch of data'
         # Generate indexes of the batch
-        indexes = self.indexes[index*self.batch_size:(index+1)*self.batch_size]
+        indexes = self.indexes[index * self.batch_size:(index + 1) * self.batch_size]
 
         # Find list of IDs
         img_temp = [self.img_list[k] for k in indexes]
@@ -41,7 +42,7 @@ class DataGenerator(keras.utils.Sequence):
             np.random.shuffle(self.indexes)
 
     def __data_generation(self, img_temp):
-        'Generates data containing batch_size samples' # X : (n_samples, *dim)
+        'Generates data containing batch_size samples'  # X : (n_samples, *dim)
         # Initialization
         X = np.empty((self.batch_size, *self.dim))
 
@@ -51,5 +52,5 @@ class DataGenerator(keras.utils.Sequence):
             img = PIL.Image.open(self.folder + "/" + img_temp[i])
             img = img.resize(img_input_shape[0:2], PIL.Image.ANTIALIAS)
             img = np.asarray(img)
-            X[i,] = img/255
+            X[i,] = img / 255
         return X

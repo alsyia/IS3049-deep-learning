@@ -5,7 +5,6 @@ from keras.layers import Layer
 
 
 def clipping(X, min_val, max_val):
-
     grad_name = "GradientClipping"
 
     @tf.RegisterGradient(grad_name)
@@ -18,8 +17,8 @@ def clipping(X, min_val, max_val):
 
     return y
 
-def rounding(X):
 
+def rounding(X):
     grad_name = "GradientRounding"
 
     @tf.RegisterGradient(grad_name)
@@ -32,8 +31,10 @@ def rounding(X):
 
     return y
 
+
 def masking(x, mask):
     return tf.multiply(x, mask)
+
 
 class ClippingLayer(Layer):
 
@@ -53,6 +54,7 @@ class ClippingLayer(Layer):
     def compute_output_shape(self, input_shape):
         return input_shape
 
+
 class RoundingLayer(Layer):
 
     def __init__(self, **kwargs):
@@ -68,7 +70,8 @@ class RoundingLayer(Layer):
 
     def compute_output_shape(self, input_shape):
         return input_shape
-    
+
+
 class MaskingLayer(Layer):
     def __init__(self, **kwargs):
         super(MaskingLayer, self).__init__()
@@ -79,12 +82,12 @@ class MaskingLayer(Layer):
         self.trainable_weights = []
         self.mask = np.zeros(input_shape[1:])
         for i in range(self.mask_idx):
-            self.mask[i%input_shape[1],i//input_shape[1]%input_shape[2],:] = 1.0
+            self.mask[i % input_shape[1], i // input_shape[1] % input_shape[2], :] = 1.0
 
         super(MaskingLayer, self).build(input_shape)
 
     def call(self, x, mask=None):
-        return tf.multiply(x,self.mask)
+        return tf.multiply(x, self.mask)
 
     def compute_output_shape(self, input_shape):
         return input_shape
