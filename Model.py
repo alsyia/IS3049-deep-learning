@@ -1,4 +1,4 @@
-git adfrom itertools import count
+from itertools import count
 
 from keras.layers import Input, Conv2D, Add, LeakyReLU, Lambda
 from keras.models import Model
