@@ -45,7 +45,7 @@ def store_data(src,dst,img_size,img_train,img_val,img_test):
         img = img.resize(img_size, PIL.Image.ANTIALIAS)
         img.save(dst + '/test/'+img_train[img_idx].split('.')[0] + ".png")
 
-def load_cifar10(dst = "cifar10"):
+def load_cifar10(dst = "cifar10", nb_images = 2000):
     if not os.path.exists(dst):
         os.mkdir(dst)
     
@@ -59,6 +59,7 @@ def load_cifar10(dst = "cifar10"):
         os.mkdir(dst + "/test")
     (x_train, _), (x_test, _) = cifar10.load_data()
     cifar = np.concatenate([x_train,x_test])
+    cifar = cifar[:min(nb_images,cifar.shape[0])]
 
     train_index, val_index, test_index = split_indices(cifar.shape[0],0.7,0.2)
     for idx in train_index:
@@ -72,8 +73,10 @@ def load_cifar10(dst = "cifar10"):
         img = PIL.Image.fromarray(np.uint8(cifar[idx,:,:,:]))
         img.save(dst + "/test/test_{}.png".format(idx))
 
-def load_folder(src,dst,img_size):
+def load_folder(src,dst,img_size,nb_images):
     img_list = os.listdir(src)
+    img_list = img_list[:min(nb_images,len(img_list))]
+
     train_index, val_index, test_index = split_indices(len(img_list),0.7,0.2)
 
     train_list = [img_list[i] for i in train_index]
@@ -82,5 +85,5 @@ def load_folder(src,dst,img_size):
 
     store_data(src,dst,img_size,train_list,val_list,test_list)
     
-#load_cifar10()
+load_cifar10("cifar10", 2000)
 #load_folder("data", "test",(32,32))
