@@ -11,6 +11,9 @@ from Model import build_model
 from ModelConfig import img_input_shape, dataset_path, train_dir, validation_dir, test_dir
 from utils import Values
 
+import PIL.Image
+import numpy as np
+
 # sess = K.get_session()
 # sess = tf_debug.TensorBoardDebugWrapperSession(sess, "PC-Wenceslas:6004")
 # K.set_session(sess)
@@ -61,6 +64,7 @@ early_stopping = EarlyStopping(monitor='val_loss', min_delta=1e-3, patience=20, 
 checkpoint = ModelCheckpoint("weights.hdf5", save_best_only=True)
 encodercheckpoint = EncoderCheckpoint("encoder.hdf5", save_best_only=True)
 tensorboard_image = TensorBoardImage("Reconstruction", test_list=test_list, logs_path='./logs/run' + str(log_index))
+
 huffmancallback = HuffmanCallback(values,train_generator)
 
 
@@ -68,4 +72,18 @@ huffmancallback = HuffmanCallback(values,train_generator)
 autoencoder.fit_generator(train_generator,
                           epochs=100,
                           validation_data=test_generator,
-                          callbacks=[tensorboard, early_stopping, checkpoint, tensorboard_image,encodercheckpoint,huffmancallback])
+                          callbacks=[tensorboard_image, tensorboard, early_stopping, checkpoint,encodercheckpoint,huffmancallback])
+
+
+img = PIL.Image.open(dataset_path +"/" + validation_dir + "/" +val_list[0])
+img_img = img.resize(img_input_shape[0:2], PIL.Image.ANTIALIAS)
+img = np.asarray(img_img) / 255
+img = img.reshape(1, *img_input_shape)
+reconstruction = autoencoder.predict(img)
+reconstruction = reconstruction*255
+reconstruction = np.clip(reconstruction, 0, 255)
+reconstruction = np.uint8(reconstruction)
+reconstruction = reconstruction.reshape(*img_input_shape)
+reconstruction_img = PIL.Image.fromarray(reconstruction)
+img_img.save("input.png")
+reconstruction_img.save("output.png")
