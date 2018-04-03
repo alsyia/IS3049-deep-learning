@@ -147,14 +147,18 @@ class TensorBoardImage(Callback):
         self.test_list = test_list
 
     def on_epoch_end(self, epoch, logs=None):
-        for idx, img_name in enumerate(self.test_list[:1]):
+        summaries = []
+        for idx, img_name in enumerate(self.test_list[:10]):
             path = dataset_path + "/" + test_dir + "/" + img_name
 
             input = image_to_input(path)
             output = self.model.predict(input)[0]
             output_img = output_to_tf_img(output)
-            summary = tf.Summary(value=[tf.Summary.Value(tag=self.tag + "_" + str(img_name), image=output_img)])
-            writer = tf.summary.FileWriter(self.logs_path)
-            writer.add_summary(summary, epoch)
-            # writer.add_summary(K.eval(output_img), epoch)
-            writer.close()
+            # summary = tf.Summary(value=[tf.Summary.Value(tag=self.tag + "_" + str(img_name), image=output_img)])
+            summary = tf.Summary.Value(tag=self.tag + "_" + str(img_name), image=output_img)
+            summaries.append(summary)
+        big_sum = tf.Summary(value=summaries)
+        writer = tf.summary.FileWriter(self.logs_path)
+        # writer.add_summary(summary, epoch)
+        writer.add_summary(big_sum, epoch)
+            # writer.close()
