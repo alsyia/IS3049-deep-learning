@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from keras.utils import plot_model
-from keras.callbacks import TensorBoard
+from keras.callbacks import TensorBoard, EarlyStopping
 from keras.datasets import cifar10
 from Model import build_model
 from ModelConfig import e_input_shape,img_input_shape
@@ -41,4 +41,12 @@ autoencoder.compile(optimizer=optimizer, loss=loss)
 # Train model !
 autoencoder.fit_generator(train_generator,
                 epochs=50,
-                validation_data=test_generator)
+                validation_data=test_generator,
+                callbacks=[
+                    EarlyStopping(
+                        monitor='val_loss',
+                        min_delta=0, 
+                        patience=0, 
+                        verbose=0, 
+                        mode='auto')
+                ])
