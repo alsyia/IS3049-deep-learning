@@ -9,6 +9,7 @@ from CustomLoss import loss
 from utils import mirror_padding
 from Generator import DataGenerator
 from keras.optimizers import Adam
+import PIL
 
 # sess = K.get_session()
 # sess = tf_debug.TensorBoardDebugWrapperSession(sess, "PC-Wenceslas:6004")
@@ -18,6 +19,7 @@ from keras.optimizers import Adam
 
 train_list = os.listdir("working_data/train")
 val_list = os.listdir("working_data/val")
+
 train_ratio = 0.7
 val_ratio = 0.2
 
@@ -49,3 +51,16 @@ autoencoder.fit_generator(train_generator,
                 epochs=50,
                 validation_data=test_generator,
                 callbacks = [tensorboard,early_stopping,checkpoint])
+
+img = PIL.Image.open("working_data/val/"+val_list[0])
+img_img = img.resize(img_input_shape[0:2], PIL.Image.ANTIALIAS)
+img = np.asarray(img_img) / 255
+img = img.reshape(1, 32, 32, 3)
+reconstruction = autoencoder.predict(img)
+reconstruction = reconstruction*255
+reconstruction = np.clip(reconstruction, 0, 255)
+reconstruction = np.uint8(reconstruction)
+reconstruction = reconstruction.reshape(32, 32, 3)
+reconstruction_img = PIL.Image.fromarray(reconstruction)
+img_img.save("input.png")
+reconstruction_img.save("output.png")   
