@@ -42,6 +42,8 @@ tensorboard = TensorBoard(log_dir='./logs', histogram_freq=0, batch_size=32)
 early_stopping = EarlyStopping(monitor='val_loss', min_delta=1e-3, patience=20, verbose=0, mode='auto')
 checkpoint = ModelCheckpoint("weights.hdf5", save_best_only=True)
 
+img= test_generator[0][0]
+
 # Train model !
 autoencoder.fit_generator(train_generator,
                 epochs=50,
