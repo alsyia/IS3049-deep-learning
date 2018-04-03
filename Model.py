@@ -29,7 +29,7 @@ def encoder(e_input):
         e_skip_connection = e
 
     e = Conv2D(filters=96, kernel_size=(5, 5), padding='same', strides=(2, 2), name="e_conv_" + str(next(conv_index)))(e)
-    #e = RoundingLayer()(e)
+    e = RoundingLayer()(e)
 
     return e
 
@@ -63,7 +63,7 @@ def decoder(encoded):
     #d = Multiply()([d,d_std])
     #d = Add()([d,d_mean])
 
-    #d = ClippingLayer()(d)
+    d = ClippingLayer(0, 1)(d)
 
     return d
 
