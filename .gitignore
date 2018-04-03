@@ -16,6 +16,7 @@ build/
 develop-eggs/
 dist/
 downloads/
+logs/
 eggs/
 .eggs/
 lib/
@@ -27,6 +28,10 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+
+# weights
+*.hdf5
+*.h5
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -56,6 +61,7 @@ coverage.xml
 # Django stuff:
 *.log
 local_settings.py
+
 
 # Flask stuff:
 instance/
