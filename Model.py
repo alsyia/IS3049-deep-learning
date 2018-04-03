@@ -9,6 +9,11 @@ from utils import subpixel
 
 
 def encoder(e_input):
+    """
+    Decoder part
+    input : image (batch_size, img, img, 3)
+    output: output of encoder (batch_size, img/8, img/8, 96)
+    """
     # Counters
     conv_index = count(start=1)
     leaky_index = count(start=1)
@@ -39,6 +44,11 @@ def encoder(e_input):
 
 
 def decoder(encoded):
+    """
+    Decoder part
+    input : output of encoder (batch_size,img/8, img/8, 96)
+    output: output of decoder (batch_size,img, img, 3) and output of encoder (batch_size,img/8, img/8, 96)
+    """
     # Counters
     conv_index = count(start=1)
     lambda_index = count(start=1)

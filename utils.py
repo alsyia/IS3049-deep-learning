@@ -20,6 +20,12 @@ def mirror_padding(img, p):
     padded[:, :, 2] = np.pad(img[:, :, 2], p, mode="reflect")
     return padded
 
-class Values:
-    def __init__(self):
-        self.values = None
+
+def itervalues(dic):
+    grid = {}
+    for i in dic.keys():
+        for j in range(len(dic[i])):
+            if j not in grid.keys():
+                grid[j] = {}
+            grid[j][i] = dic[i][j]
+    return grid

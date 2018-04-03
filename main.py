@@ -8,8 +8,7 @@ from CustomCallbacks import TensorBoardImage, EncoderCheckpoint, HuffmanCallback
 from CustomLoss import loss, code
 from Generator import DataGenerator
 from Model import build_model
-from ModelConfig import img_input_shape, dataset_path, train_dir, validation_dir, test_dir
-from utils import Values
+from ModelConfig import img_input_shape, dataset_path, train_dir, validation_dir, test_dir,load_model
 
 # sess = K.get_session()
 # sess = tf_debug.TensorBoardDebugWrapperSession(sess, "PC-Wenceslas:6004")
@@ -33,7 +32,7 @@ autoencoder = build_model()
 # Plot model graph
 plot_model(autoencoder, to_file='autoencoder.png')
 
-load_model = True
+
 if load_model:
     weight_path = "weights.hdf5"
     print("loading weights from {}".format(weight_path))
@@ -54,14 +53,12 @@ else:
     indexes = [run[-1] for run in run_list]
     log_index = str(int(max(indexes)) + 1)
 
-values = Values()
-
 tensorboard = TensorBoard(log_dir='./logs/run' + str(log_index), histogram_freq=0, batch_size=32)
 early_stopping = EarlyStopping(monitor='val_loss', min_delta=1e-3, patience=20, verbose=0, mode='auto')
 checkpoint = ModelCheckpoint("weights.hdf5", save_best_only=True)
 encodercheckpoint = EncoderCheckpoint("encoder.hdf5", save_best_only=True)
 tensorboard_image = TensorBoardImage("Reconstruction", test_list=test_list, logs_path='./logs/run' + str(log_index))
-huffmancallback = HuffmanCallback(values,train_generator)
+huffmancallback = HuffmanCallback(train_generator)
 
 
 # Train model !

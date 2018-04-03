@@ -3,6 +3,7 @@ dataset_path = "./cifar10"
 test_dir = "test"
 train_dir = "train"
 validation_dir = "val"
+load_model = False
 
 # Encoder
 a = 0.3  # Leaky ReLu alpha value
