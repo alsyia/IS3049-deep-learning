@@ -1,7 +1,6 @@
 import io
 
 import PIL.Image
-import numpy as np
 import tensorflow as tf
 from keras.callbacks import Callback
 import PIL
@@ -48,6 +47,8 @@ def output_to_tf_img(output):
     output = np.uint8(output * 255)
     output = output.reshape(*img_input_shape)
     output_img = make_image(output)
+    # return tf.summary.image("Reconstruction", output)
+
     return output_img
 
 
@@ -60,14 +61,14 @@ class TensorBoardImage(Callback):
         self.test_list = test_list
 
     def on_epoch_end(self, epoch, logs=None):
-        for idx, img_name in enumerate(self.test_list[:2]):
+        for idx, img_name in enumerate(self.test_list[:1]):
             path = dataset_path + "/" + test_dir + "/" + img_name
 
             input = image_to_input(path)
             output = self.model.predict(input)
             output_img = output_to_tf_img(output)
-
-            summary = tf.Summary(value=[tf.Summary.Value(tag=self.tag + str(idx), image=output_img)])
+            summary = tf.Summary(value=[tf.Summary.Value(tag=self.tag + "_" + str(img_name), image=output_img)])
             writer = tf.summary.FileWriter(self.logs_path)
             writer.add_summary(summary, epoch)
+            # writer.add_summary(K.eval(output_img), epoch)
             writer.close()
