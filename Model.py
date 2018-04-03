@@ -13,9 +13,9 @@ def encoder(e_input):
     leaky_index = count(start=1)
     add_index = count(start=1)
 
-    e = Conv2D(filters=64, kernel_size=(5, 5), padding='valid', strides=(2, 2), name="e_conv_" + str(str(next(conv_index))))(e_input)
+    e = Conv2D(filters=64, kernel_size=(5, 5), padding='same', strides=(2, 2), name="e_conv_" + str(str(next(conv_index))))(e_input)
     e = LeakyReLU(alpha=a, name="e_leaky_" + str(next(leaky_index)))(e)
-    e = Conv2D(filters=128, kernel_size=(5, 5), padding='valid', strides=(2, 2), name="e_conv_" + str(next(conv_index)))(e)
+    e = Conv2D(filters=128, kernel_size=(5, 5), padding='same', strides=(2, 2), name="e_conv_" + str(next(conv_index)))(e)
     e = LeakyReLU(alpha=a, name="e_leaky_" + str(next(leaky_index)))(e)
 
     e_skip_connection = e
@@ -28,12 +28,12 @@ def encoder(e_input):
         e = Add(name="e_add_" + str(next(add_index)))([e, e_skip_connection])
         e_skip_connection = e
 
-    e = Conv2D(filters=96, kernel_size=(5, 5), padding='valid', strides=(2, 2), name="e_conv_" + str(next(conv_index)))(e)
-    encoded = RoundingLayer()(e)
+    e = Conv2D(filters=96, kernel_size=(5, 5), padding='same', strides=(2, 2), name="e_conv_" + str(next(conv_index)))(e)
+    #e = RoundingLayer()(e)
 
-    return encoded
+    return e
 
-def decoder(encoded,d_mean,d_std):
+def decoder(encoded):
     # Counters
     conv_index = count(start=1)
     lambda_index = count(start=1)
@@ -60,15 +60,13 @@ def decoder(encoded,d_mean,d_std):
     d = Lambda(function=subpixel, name="d_lambda_" + str(next(lambda_index)))(d)
 
     # Denormalize
-    d = Multiply()([d,d_std])
-    d = Add()([d,d_mean])
+    #d = Multiply()([d,d_std])
+    #d = Add()([d,d_mean])
 
-    decoded = ClippingLayer()(d)
+    #d = ClippingLayer()(d)
 
-    return decoded
+    return d
 
 def build_model():
     e_input = Input(shape=e_input_shape, name="e_input_1")
-    d_mean = Input(shape=(3,), name="d_input_2")
-    d_std = Input(shape=(3,), name="d_input_3")
-    return Model([e_input,d_mean,d_std],decoder(encoder(e_input),d_mean,d_std))
+    return Model(e_input,decoder(encoder(e_input)))

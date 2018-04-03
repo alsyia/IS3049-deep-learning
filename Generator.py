@@ -30,9 +30,9 @@ class DataGenerator(keras.utils.Sequence):
         img_temp = [self.img_list[k] for k in indexes]
 
         # Generate data
-        X_padded, X_mean, X_std, X = self.__data_generation(img_temp)
+        X = self.__data_generation(img_temp)
 
-        return [X_padded, X_mean ,X_std], X
+        return X, X
 
     def on_epoch_end(self):
         'Updates indexes after each epoch'
@@ -45,21 +45,13 @@ class DataGenerator(keras.utils.Sequence):
         # Initialization
         X = np.empty((self.batch_size, *self.dim))
 
-        # compute the dimension after padding
-        padded_shape = (self.dim[0]+2*mirror,self.dim[1]+2*mirror,self.dim[2])
-        X_padded = np.empty((self.batch_size, *padded_shape ))
-        X_mean = np.empty((self.batch_size,3))
-        X_std = np.empty((self.batch_size,3))
-
         # Generate data
         for i in range(len(img_temp)):
             # Store sample
             img = PIL.Image.open(self.folder + "/" + img_temp[i])
             img = img.resize(img_input_shape[0:2], PIL.Image.ANTIALIAS)
+            img = np.asarray(img)/255
             X[i,] = img
-            X_mean[i,] = np.mean(X[i,],axis = (0,1))
-            X_std[i,] = np.std(X[i,], axis = (0,1))
-            X[i,] = (X[i,]-X_mean[i,])/X_std[i,]
-            X_padded[i,] = mirror_padding(X[i,],mirror)
 
-        return X_padded, X_mean, X_std, X
+
+        return X
