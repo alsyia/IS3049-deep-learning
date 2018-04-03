@@ -9,7 +9,7 @@ from CustomLoss import loss
 from utils import mirror_padding
 from Generator import DataGenerator
 from keras.optimizers import Adam
-
+from CustomCallbacks import PredictCallback
 # sess = K.get_session()
 # sess = tf_debug.TensorBoardDebugWrapperSession(sess, "PC-Wenceslas:6004")
 # K.set_session(sess)
@@ -41,11 +41,11 @@ autoencoder.compile(optimizer=optimizer, loss=loss)
 tensorboard = TensorBoard(log_dir='./logs', histogram_freq=0, batch_size=32)
 early_stopping = EarlyStopping(monitor='val_loss', min_delta=1e-3, patience=20, verbose=0, mode='auto')
 checkpoint = ModelCheckpoint("weights.hdf5", save_best_only=True)
-
+custom_plot = PredictCallback(test_generator)
 img= test_generator[0][0]
 
 # Train model !
 autoencoder.fit_generator(train_generator,
                 epochs=50,
                 validation_data=test_generator,
-                callbacks = [tensorboard,early_stopping,checkpoint])
+                callbacks = [tensorboard,early_stopping,checkpoint,custom_plot])
