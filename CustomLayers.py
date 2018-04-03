@@ -1,7 +1,8 @@
-from keras.layers import Layer
-import tensorflow as tf
 import keras.backend as K
 import numpy as np
+import tensorflow as tf
+from keras.layers import Layer
+
 
 def clipping(X, min_val, max_val):
 

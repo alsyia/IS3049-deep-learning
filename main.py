@@ -1,16 +1,14 @@
 import os
-import numpy as np
-from keras.utils import plot_model
+
 from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping
-from keras.datasets import cifar10
-from Model import build_model
-from ModelConfig import e_input_shape,img_input_shape
-from CustomLoss import loss
-from utils import mirror_padding
-from Generator import DataGenerator
 from keras.optimizers import Adam
+from keras.utils import plot_model
+
 from CustomCallbacks import TensorBoardImage
-import PIL
+from CustomLoss import loss
+from Generator import DataGenerator
+from Model import build_model
+from ModelConfig import img_input_shape
 
 # sess = K.get_session()
 # sess = tf_debug.TensorBoardDebugWrapperSession(sess, "PC-Wenceslas:6004")

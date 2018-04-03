@@ -1,8 +1,8 @@
-import numpy as np
-import keras
-from utils import mirror_padding
-from ModelConfig import *
 import PIL
+import keras
+import numpy as np
+
+from ModelConfig import *
 
 
 class DataGenerator(keras.utils.Sequence):

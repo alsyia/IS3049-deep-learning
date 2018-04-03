@@ -1,9 +1,12 @@
-from keras.callbacks import Callback
+import io
+
 import PIL.Image
 import numpy as np
-from ModelConfig import *
 import tensorflow as tf
-import io
+from keras.callbacks import Callback
+
+from ModelConfig import *
+
 
 class PredictCallback(Callback):
     def on_train_begin(self, logs={}):

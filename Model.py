@@ -1,6 +1,8 @@
 from itertools import count
-from keras.layers import Input, Conv2D, Add, LeakyReLU, Lambda, Multiply
+
+from keras.layers import Input, Conv2D, Add, LeakyReLU, Lambda
 from keras.models import Model
+
 from CustomLayers import ClippingLayer, RoundingLayer
 from ModelConfig import *
 from utils import subpixel
@@ -58,10 +60,6 @@ def decoder(encoded):
 
     d = Conv2D(filters=12, kernel_size=(3, 3), padding='same', strides=(1, 1), name="d_conv_" + str(next(conv_index)))(d)
     d = Lambda(function=subpixel, name="d_lambda_" + str(next(lambda_index)))(d)
-
-    # Denormalize
-    #d = Multiply()([d,d_std])
-    #d = Add()([d,d_mean])
 
     d = ClippingLayer(0, 1)(d)
 
