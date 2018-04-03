@@ -9,6 +9,7 @@ from CustomLoss import loss
 from utils import mirror_padding
 from Generator import DataGenerator
 from keras.optimizers import Adam
+from CustomCallbacks import TensorBoardImage
 import PIL
 
 # sess = K.get_session()
@@ -19,6 +20,7 @@ import PIL
 
 train_list = os.listdir("working_data/train")
 val_list = os.listdir("working_data/val")
+test_list = os.listdir("working_data/test")
 
 train_ratio = 0.7
 val_ratio = 0.2
@@ -40,27 +42,23 @@ plot_model(autoencoder, to_file='autoencoder.png')
 optimizer = Adam(lr =  1e-4, clipnorm = 1)
 autoencoder.compile(optimizer=optimizer, loss=loss)
 
-tensorboard = TensorBoard(log_dir='./logs', histogram_freq=0, batch_size=32)
+# Get last log
+log_index = None
+run_list = os.listdir("./logs")
+if len(run_list) == 0:
+    log_index = 0
+else:
+    indexes = [run[-1] for run in run_list]
+    log_index = str(int(max(indexes)) + 1)
+
+tensorboard = TensorBoard(log_dir='./logs/run'+str(log_index), histogram_freq=0, batch_size=32)
 early_stopping = EarlyStopping(monitor='val_loss', min_delta=1e-3, patience=20, verbose=0, mode='auto')
 checkpoint = ModelCheckpoint("weights.hdf5", save_best_only=True)
-
-img= test_generator[0][0]
+tensorboard_image = TensorBoardImage("Reconstruction", test_list=test_list, logs_path='./logs/run'+str(log_index))
+img = test_generator[0][0]
 
 # Train model !
 autoencoder.fit_generator(train_generator,
                 epochs=50,
                 validation_data=test_generator,
-                callbacks = [tensorboard,early_stopping,checkpoint])
-
-img = PIL.Image.open("working_data/val/"+val_list[0])
-img_img = img.resize(img_input_shape[0:2], PIL.Image.ANTIALIAS)
-img = np.asarray(img_img) / 255
-img = img.reshape(1, 32, 32, 3)
-reconstruction = autoencoder.predict(img)
-reconstruction = reconstruction*255
-reconstruction = np.clip(reconstruction, 0, 255)
-reconstruction = np.uint8(reconstruction)
-reconstruction = reconstruction.reshape(32, 32, 3)
-reconstruction_img = PIL.Image.fromarray(reconstruction)
-img_img.save("input.png")
-reconstruction_img.save("output.png")   
+                callbacks = [tensorboard, early_stopping, checkpoint, tensorboard_image])
