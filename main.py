@@ -1,18 +1,17 @@
 import os
 
+import PIL.Image
+import numpy as np
 from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping
 from keras.optimizers import Adam
 from keras.utils import plot_model
-
+from keras.losses import mse
 from CustomCallbacks import TensorBoardImage, EncoderCheckpoint, HuffmanCallback
 from CustomLoss import loss, code
 from Generator import DataGenerator
 from Model import build_model
 from ModelConfig import img_input_shape, dataset_path, train_dir, validation_dir, test_dir
 from utils import Values
-
-import PIL.Image
-import numpy as np
 
 # sess = K.get_session()
 # sess = tf_debug.TensorBoardDebugWrapperSession(sess, "PC-Wenceslas:6004")
@@ -27,16 +26,15 @@ test_list = os.listdir(dataset_path+"/"+test_dir)
 train_ratio = 0.7
 val_ratio = 0.2
 
+autoencoder, vgg = build_model()
 
-train_generator = DataGenerator(dataset_path+"/"+train_dir,train_list,32,img_input_shape)
-test_generator = DataGenerator(dataset_path+"/"+validation_dir,val_list,32,img_input_shape)
-
-autoencoder = build_model()
+train_generator = DataGenerator(dataset_path + "/" + train_dir, train_list, vgg, 32, img_input_shape)
+test_generator = DataGenerator(dataset_path + "/" + validation_dir, val_list, vgg, 32, img_input_shape)
 
 # Plot model graph
 plot_model(autoencoder, to_file='autoencoder.png')
 
-load_model = True
+load_model = False
 if load_model:
     weight_path = "weights.hdf5"
     print("loading weights from {}".format(weight_path))
@@ -46,7 +44,12 @@ if load_model:
 
 # Compile model with adam optimizer
 optimizer = Adam(lr=1e-4, clipnorm=1)
-autoencoder.compile(optimizer=optimizer, loss={'clipping_layer_1':loss,'model_1':code})
+# WARNING: Order IS important here ! Please check outputs order in Model.py, should match
+autoencoder.compile(optimizer=optimizer, loss=[code, loss, mse, mse])
+# autoencoder.compile(optimizer=optimizer, loss={"clipping_layer_1": loss,
+#                                                "rounding_layer_1": code,
+#                                                "VGG/block2_pool": mse,
+#                                                "VGG/block5_pool": mse})
 
 # Get last log
 log_index = None
@@ -80,7 +83,7 @@ img_img = img.resize(img_input_shape[0:2], PIL.Image.ANTIALIAS)
 img = np.asarray(img_img) / 255
 img = img.reshape(1, *img_input_shape)
 reconstruction = autoencoder.predict(img)
-reconstruction = reconstruction*255
+reconstruction = reconstruction[1]*255
 reconstruction = np.clip(reconstruction, 0, 255)
 reconstruction = np.uint8(reconstruction)
 reconstruction = reconstruction.reshape(*img_input_shape)
