@@ -45,7 +45,7 @@ class DataGenerator(keras.utils.Sequence):
         'Generates data containing batch_size samples'  # X : (n_samples, *dim)
         # Initialization
         X = np.empty((self.batch_size, *self.dim))
-        B = np.empty((self.batch_size, 32,32,3))
+        B = np.empty((self.batch_size, self.dim[0]/8,self.dim[1]/8, self.dim[2]))
         # Generate data
         for i in range(len(img_temp)):
             # Store sample

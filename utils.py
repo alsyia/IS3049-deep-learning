@@ -1,6 +1,8 @@
+import os
+import shutil
 import numpy as np
 import tensorflow as tf
-
+from datetime import datetime
 
 def subpixel(x, scale=2):
     """
@@ -20,12 +22,22 @@ def mirror_padding(img, p):
     padded[:, :, 2] = np.pad(img[:, :, 2], p, mode="reflect")
     return padded
 
+def generate_experiment():
+    # create a folder for the experiment
+    if not os.path.exists("experiments"):
+        os.mkdir("experiments")
 
-def itervalues(dic):
-    grid = {}
-    for i in dic.keys():
-        for j in range(len(dic[i])):
-            if j not in grid.keys():
-                grid[j] = {}
-            grid[j][i] = dic[i][j]
-    return grid
+    time = datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
+    exp_name = "exp_" + time
+    exp_path = "experiments/" + exp_name
+    os.mkdir(exp_path)
+    shutil.copy("ModelConfig.py",exp_path)
+    return exp_path
+
+def add_weight_experiment(exp_path,weight_path):
+    if not os.path.exists(exp_path):
+        raise Exception("experiment path does not exists")
+    if not os.path.exists(weight_path):
+        raise Exception("weight path does not exists")
+    shutil.copy(weight_path,exp_path)
+
