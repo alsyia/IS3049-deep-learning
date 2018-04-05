@@ -72,12 +72,13 @@ def decoder(encoded):
 
     return d
 
-def vgg_features():
+def vgg_features(name = 'VGG'):
     base_model = VGG19(weights="imagenet", include_top=False, input_shape=img_input_shape)
+    
     perceptual_model = Model(inputs=base_model.input,
                              outputs=[base_model.get_layer("block2_pool").output,
                                       base_model.get_layer("block5_pool").output],
-                             name="VGG")
+                             name=name)
 
     # We don't want to train VGG
     perceptual_model.trainable = False
@@ -92,13 +93,17 @@ def build_model():
     # Chain models
     encoded = encoder(e_input)
     decoded = decoder(encoded)
-    perceptual_model = vgg_features()
+    perceptual_model = vgg_features('VGG_Model')
     featured = perceptual_model(decoded)
+
+    block_2 = Lambda(lambda x:x, name = "VGG_block_2")(featured[0])
+    block_5 = Lambda(lambda x:x, name = "VGG_block_5")(featured[1])
+    
     # Define global models with multiple outputs
-    autoencodeur = Model(e_input, [encoded, decoded, *featured])
+    autoencodeur = Model(e_input, [encoded, decoded, block_2, block_5])
 
     # Return autoencodeur (we are going to train it) and perceptual_model (will be used in the loss)
-    return autoencodeur, vgg_features()
+    return autoencodeur, vgg_features('VGG_Generator')
 
     # e_input = Input(shape=e_input_shape, name="e_input_1")
     # encodeur = Model(e_input,encoder(e_input))

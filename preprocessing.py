@@ -85,5 +85,5 @@ def load_folder(src,dst,img_size,nb_images):
 
     store_data(src,dst,img_size,train_list,val_list,test_list)
     
-load_cifar10("cifar10", 2000)
-#load_folder("data", "test",(32,32))
+#load_cifar10("cifar10", 2000)
+load_folder("/media/romain/DATA/Shared_repository/srez/dataset", "celeba64",(64,64),2000)

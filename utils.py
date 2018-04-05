@@ -19,7 +19,3 @@ def mirror_padding(img, p):
     padded[:, :, 1] = np.pad(img[:, :, 1], p, mode="reflect")
     padded[:, :, 2] = np.pad(img[:, :, 2], p, mode="reflect")
     return padded
-
-class Values:
-    def __init__(self):
-        self.values = None

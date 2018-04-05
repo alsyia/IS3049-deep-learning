@@ -1,5 +1,5 @@
 # Dataset
-dataset_path = "./cifar10"
+dataset_path = "./celeba64"
 test_dir = "test"
 train_dir = "train"
 validation_dir = "val"
@@ -27,6 +27,6 @@ d_res_block_conv_params = {  # Parameters of residual blocks
 loss_params = {
     "mse": 1,
     "bit": 0,
-    "perceptual_2": 1,
-    "perceptual_5": 1
+    "perceptual_2": 0.001,
+    "perceptual_5": 0.1
 }

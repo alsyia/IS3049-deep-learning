@@ -7,11 +7,10 @@ from keras.optimizers import Adam
 from keras.utils import plot_model
 from keras.losses import mse
 from CustomCallbacks import TensorBoardImage, EncoderCheckpoint, HuffmanCallback
-from CustomLoss import loss, code
+from CustomLoss import loss, code, perceptual_2, perceptual_5
 from Generator import DataGenerator
 from Model import build_model
 from ModelConfig import img_input_shape, dataset_path, train_dir, validation_dir, test_dir
-from utils import Values
 
 # sess = K.get_session()
 # sess = tf_debug.TensorBoardDebugWrapperSession(sess, "PC-Wenceslas:6004")
@@ -45,11 +44,11 @@ if load_model:
 # Compile model with adam optimizer
 optimizer = Adam(lr=1e-4, clipnorm=1)
 # WARNING: Order IS important here ! Please check outputs order in Model.py, should match
-autoencoder.compile(optimizer=optimizer, loss=[code, loss, mse, mse])
-# autoencoder.compile(optimizer=optimizer, loss={"clipping_layer_1": loss,
-#                                                "rounding_layer_1": code,
-#                                                "VGG/block2_pool": mse,
-#                                                "VGG/block5_pool": mse})
+
+autoencoder.compile(optimizer=optimizer, loss={"clipping_layer_1": loss,
+                                                "rounding_layer_1": code,
+                                                "VGG_block_2": perceptual_2,
+                                                "VGG_block_5": perceptual_5})
 
 # Get last log
 log_index = None
@@ -60,22 +59,21 @@ else:
     indexes = [run[-1] for run in run_list]
     log_index = str(int(max(indexes)) + 1)
 
-values = Values()
-
 tensorboard = TensorBoard(log_dir='./logs/run' + str(log_index), histogram_freq=0, batch_size=32)
 early_stopping = EarlyStopping(monitor='val_loss', min_delta=1e-5, patience=20, verbose=1, mode='auto')
 checkpoint = ModelCheckpoint("weights.hdf5", save_best_only=True)
 encodercheckpoint = EncoderCheckpoint("encoder.hdf5", save_best_only=True)
 tensorboard_image = TensorBoardImage("Reconstruction", test_list=test_list, logs_path='./logs/run' + str(log_index))
 
-huffmancallback = HuffmanCallback(values,train_generator)
+huffmancallback = HuffmanCallback(train_generator)
 
 
 # Train model !
 autoencoder.fit_generator(train_generator,
                           epochs=100,
                           validation_data=test_generator,
-                          callbacks=[tensorboard_image, tensorboard, early_stopping, checkpoint,encodercheckpoint,huffmancallback])
+                          callbacks=[tensorboard_image, tensorboard, early_stopping, checkpoint,encodercheckpoint,huffmancallback],
+                          verbose = 1)
 
 
 img = PIL.Image.open(dataset_path +"/" + validation_dir + "/" +val_list[0])
