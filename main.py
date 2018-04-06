@@ -9,7 +9,7 @@ from keras.losses import mse
 from keras.applications import VGG19
 from keras.models import Model
 from CustomCallbacks import TensorBoardImage, EncoderCheckpoint, HuffmanCallback
-from CustomLoss import loss, code
+from CustomLoss import loss, code, perceptual_2, perceptual_5
 from Generator import DataGenerator
 from Model import build_model
 from ModelConfig import img_input_shape, dataset_path, train_dir, validation_dir, test_dir
@@ -60,7 +60,7 @@ if load_model:
 # Compile model with adam optimizer
 optimizer = Adam(lr=1e-4, clipnorm=1)
 # WARNING: Order IS important here ! Please check outputs order in Model.py, should match
-autoencoder.compile(optimizer=optimizer, loss=[code, loss, mse, mse])
+autoencoder.compile(optimizer=optimizer, loss=[code, loss, perceptual_2, perceptual_5])
 # autoencoder.compile(optimizer=optimizer, loss={"clipping_layer_1": loss,
 #                                                "rounding_layer_1": code,
 #                                                "VGG/block2_pool": mse,
