@@ -6,6 +6,8 @@ from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping
 from keras.optimizers import Adam
 from keras.utils import plot_model
 from keras.losses import mse
+from keras.applications import VGG19
+from keras.models import Model
 from CustomCallbacks import TensorBoardImage, EncoderCheckpoint, HuffmanCallback
 from CustomLoss import loss, code
 from Generator import DataGenerator
@@ -26,13 +28,26 @@ test_list = os.listdir(dataset_path+"/"+test_dir)
 train_ratio = 0.7
 val_ratio = 0.2
 
-autoencoder, vgg = build_model()
+img = PIL.Image.open(dataset_path + "/" + validation_dir + "/" + val_list[0])
+img_img = img.resize(img_input_shape[0:2], PIL.Image.ANTIALIAS)
+img = np.asarray(img_img) / 255
+img = img.reshape(1, *img_input_shape)
 
-train_generator = DataGenerator(dataset_path + "/" + train_dir, train_list, vgg, 32, img_input_shape)
-test_generator = DataGenerator(dataset_path + "/" + validation_dir, val_list, vgg, 32, img_input_shape)
+base_model = VGG19(weights="imagenet", include_top=False, input_shape=img_input_shape)
+
+perceptual_model = Model(inputs=base_model.input,
+                         outputs=[base_model.get_layer("block2_pool").output,
+                                  base_model.get_layer("block5_pool").output],
+                         name="VGG")
+perceptual_model.predict(img)
+print("Predicted")
+autoencoder, _ = build_model(perceptual_model)
+
+train_generator = DataGenerator(dataset_path + "/" + train_dir, train_list, perceptual_model, 32, img_input_shape)
+test_generator = DataGenerator(dataset_path + "/" + validation_dir, val_list, perceptual_model, 32, img_input_shape)
 
 # Plot model graph
-plot_model(autoencoder, to_file='autoencoder.png')
+# plot_model(autoencoder, to_file='autoencoder.png')
 
 load_model = False
 if load_model:
@@ -71,12 +86,10 @@ tensorboard_image = TensorBoardImage("Reconstruction", test_list=test_list, logs
 huffmancallback = HuffmanCallback(values,train_generator)
 
 
-# Train model !
 autoencoder.fit_generator(train_generator,
                           epochs=100,
                           validation_data=test_generator,
                           callbacks=[tensorboard_image, tensorboard, early_stopping, checkpoint,encodercheckpoint,huffmancallback])
-
 
 img = PIL.Image.open(dataset_path +"/" + validation_dir + "/" +val_list[0])
 img_img = img.resize(img_input_shape[0:2], PIL.Image.ANTIALIAS)

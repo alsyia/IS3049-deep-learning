@@ -86,19 +86,18 @@ def vgg_features():
 
     return perceptual_model
 
-def build_model():
+def build_model(perceptual_model):
     # Define input layer
     e_input = Input(shape=e_input_shape, name="e_input_1")
     # Chain models
     encoded = encoder(e_input)
     decoded = decoder(encoded)
-    perceptual_model = vgg_features()
     featured = perceptual_model(decoded)
     # Define global models with multiple outputs
     autoencodeur = Model(e_input, [encoded, decoded, *featured])
 
     # Return autoencodeur (we are going to train it) and perceptual_model (will be used in the loss)
-    return autoencodeur, vgg_features()
+    return autoencodeur, perceptual_model
 
     # e_input = Input(shape=e_input_shape, name="e_input_1")
     # encodeur = Model(e_input,encoder(e_input))
