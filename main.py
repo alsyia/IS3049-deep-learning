@@ -60,11 +60,11 @@ if load_model:
 # Compile model with adam optimizer
 optimizer = Adam(lr=1e-4, clipnorm=1)
 # WARNING: Order IS important here ! Please check outputs order in Model.py, should match
-autoencoder.compile(optimizer=optimizer, loss=[code, loss, perceptual_2, perceptual_5])
-# autoencoder.compile(optimizer=optimizer, loss={"clipping_layer_1": loss,
-#                                                "rounding_layer_1": code,
-#                                                "VGG/block2_pool": mse,
-#                                                "VGG/block5_pool": mse})
+#autoencoder.compile(optimizer=optimizer, loss=[code, loss, perceptual_2, perceptual_5])
+autoencoder.compile(optimizer=optimizer, loss={"clipping_layer_1": loss,
+                                                "rounding_layer_1": code,
+                                                "VGG_block_2": perceptual_2,
+                                                "VGG_block_5": perceptual_5})
 
 # Get last log
 log_index = None

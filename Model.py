@@ -94,8 +94,11 @@ def build_model(perceptual_model):
     decoded = decoder(encoded)
     featured = perceptual_model(decoded)
     # Define global models with multiple outputs
-    autoencodeur = Model(e_input, [encoded, decoded, *featured])
+    #autoencodeur = Model(e_input, [encoded, decoded, *featured])
 
+    block_2 = Lambda(lambda x:x, name = "VGG_block_2")(featured[0])
+    block_5 = Lambda(lambda x:x, name = "VGG_block_5")(featured[1])
+    autoencodeur = Model(e_input, [encoded, decoded, block_2, block_5])
     # Return autoencodeur (we are going to train it) and perceptual_model (will be used in the loss)
     return autoencodeur, perceptual_model
 
