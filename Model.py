@@ -72,6 +72,7 @@ def decoder(encoded):
 
     return d
 
+
 def vgg_features():
     base_model = VGG19(weights="imagenet", include_top=False, input_shape=img_input_shape)
     perceptual_model = Model(inputs=base_model.input,
@@ -86,7 +87,9 @@ def vgg_features():
 
     return perceptual_model
 
+
 def build_model(perceptual_model):
+
     # Define input layer
     e_input = Input(shape=e_input_shape, name="e_input_1")
     # Chain models
@@ -94,17 +97,10 @@ def build_model(perceptual_model):
     decoded = decoder(encoded)
     featured = perceptual_model(decoded)
     # Define global models with multiple outputs
-    #autoencodeur = Model(e_input, [encoded, decoded, *featured])
 
-    block_2 = Lambda(lambda x:x, name = "VGG_block_2")(featured[0])
-    block_5 = Lambda(lambda x:x, name = "VGG_block_5")(featured[1])
+    # Add lambda layers to rename outputs, otherwise Keras will give the same name...
+    block_2 = Lambda(lambda x: x, name = "VGG_block_2")(featured[0])
+    block_5 = Lambda(lambda x: x, name = "VGG_block_5")(featured[1])
     autoencodeur = Model(e_input, [encoded, decoded, block_2, block_5])
     # Return autoencodeur (we are going to train it) and perceptual_model (will be used in the loss)
     return autoencodeur, perceptual_model
-
-    # e_input = Input(shape=e_input_shape, name="e_input_1")
-    # encodeur = Model(e_input,encoder(e_input))
-    #
-    # d, code = decoder(encodeur(e_input))
-    # autoencodeur = Model(e_input,[d,code])
-    # return autoencodeur

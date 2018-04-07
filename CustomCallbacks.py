@@ -1,11 +1,12 @@
 import io
+import warnings
 
+import PIL
 import PIL.Image
+import numpy as np
 import tensorflow as tf
 from keras.callbacks import Callback
-import PIL
-import numpy as np
-import warnings
+
 from ModelConfig import *
 
 
@@ -32,7 +33,6 @@ class HuffmanCallback(Callback):
         values, counts = np.unique(codes, return_counts = True)
         self.obj_values.values = values[np.argsort(counts)]
         print("values : {}".format(values))
-
 
 
 class EncoderCheckpoint(Callback):
@@ -92,9 +92,7 @@ class EncoderCheckpoint(Callback):
                         self.best = current
                         if self.save_weights_only:
                             self.model.save_weights(filepath, overwrite=True)
-                            # self.model.layers[1].save_weights(filepath, overwrite=True)
                         else:
-                            # self.model.layers[1].save(filepath, overwrite=True)
                             self.model.save(filepath, overwrite=True)
                     else:
                         if self.verbose > 0:
@@ -104,11 +102,10 @@ class EncoderCheckpoint(Callback):
                 if self.verbose > 0:
                     print('\nEpoch %05d: saving model to %s' % (epoch + 1, filepath))
                 if self.save_weights_only:
-                    # self.model.layers[1].save_weights(filepath, overwrite=True)
                     self.model.save_weights(filepath, overwrite=True)
                 else:
                     self.model.save(filepath, overwrite=True)
-                    # self.model.layers[1].save(filepath, overwrite=True)
+
 
 def make_image(tensor):
     height, width, channel = tensor.shape
@@ -135,7 +132,6 @@ def output_to_tf_img(output):
     output = np.uint8(output * 255)
     output = output.reshape(*img_input_shape)
     output_img = make_image(output)
-    # return tf.summary.image("Reconstruction", output)
 
     return output_img
 
@@ -156,11 +152,8 @@ class TensorBoardImage(Callback):
             input = image_to_input(path)
             output = self.model.predict(input)[1]
             output_img = output_to_tf_img(output)
-            # summary = tf.Summary(value=[tf.Summary.Value(tag=self.tag + "_" + str(img_name), image=output_img)])
             summary = tf.Summary.Value(tag=self.tag + "_" + str(img_name), image=output_img)
             summaries.append(summary)
         big_sum = tf.Summary(value=summaries)
         writer = tf.summary.FileWriter(self.logs_path)
-        # writer.add_summary(summary, epoch)
         writer.add_summary(big_sum, epoch)
-            # writer.close()
