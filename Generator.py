@@ -1,18 +1,19 @@
 import PIL
 import keras
 import numpy as np
-
+from Model import vgg_features
 from ModelConfig import *
 
 
 class DataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
 
-    def __init__(self, folder, img_list, batch_size=32, dim=(32, 32, 3), shuffle=True):
+    def __init__(self, folder, img_list, vgg, batch_size=32, dim=(32, 32, 3), shuffle=True):
         'Initialization'
         self.dim = dim
         self.batch_size = batch_size
         self.img_list = img_list
+        self.vgg = vgg
         self.folder = folder
         self.len_data = len(img_list)
         self.shuffle = shuffle
@@ -31,9 +32,9 @@ class DataGenerator(keras.utils.Sequence):
         img_temp = [self.img_list[k] for k in indexes]
 
         # Generate data
-        X, B = self.__data_generation(img_temp)
+        X, B, F2, F5 = self.__data_generation(img_temp)
 
-        return X, [X, B]
+        return X, [B, X, F2, F5]
 
     def on_epoch_end(self):
         'Updates indexes after each epoch'
@@ -45,7 +46,7 @@ class DataGenerator(keras.utils.Sequence):
         'Generates data containing batch_size samples'  # X : (n_samples, *dim)
         # Initialization
         X = np.empty((self.batch_size, *self.dim))
-        B = np.empty((self.batch_size, 32,32,3))
+        B = np.empty((self.batch_size, *self.dim))
         # Generate data
         for i in range(len(img_temp)):
             # Store sample
@@ -57,4 +58,8 @@ class DataGenerator(keras.utils.Sequence):
             # B sert juste à avoir une coherence entre les sorties du réseau et les verites terrains
             # il est rempli de 0
             B[i,] = 0
-        return X, B
+
+        # On génère maintenant les features pour la perceptual_loss
+        self.vgg._make_predict_function()
+        F2, F5 = self.vgg.predict(X)
+        return X, B, F2, F5

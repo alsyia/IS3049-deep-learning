@@ -2,7 +2,7 @@ from itertools import count
 
 from keras.layers import Input, Conv2D, Add, LeakyReLU, Lambda
 from keras.models import Model
-
+from keras.applications import VGG19
 from CustomLayers import ClippingLayer, RoundingLayer
 from ModelConfig import *
 from utils import subpixel
@@ -70,12 +70,41 @@ def decoder(encoded):
 
     d = ClippingLayer(0, 1)(d)
 
-    return d, encoded
+    return d
 
+def vgg_features():
+    base_model = VGG19(weights="imagenet", include_top=False, input_shape=img_input_shape)
+    perceptual_model = Model(inputs=base_model.input,
+                             outputs=[base_model.get_layer("block2_pool").output,
+                                      base_model.get_layer("block5_pool").output],
+                             name="VGG")
 
-def build_model():
+    # We don't want to train VGG
+    perceptual_model.trainable = False
+    for layer in perceptual_model.layers:
+        layer.trainable = False
+
+    return perceptual_model
+
+def build_model(perceptual_model):
+    # Define input layer
     e_input = Input(shape=e_input_shape, name="e_input_1")
-    encodeur = Model(e_input,encoder(e_input))
-    d, code = decoder(encodeur(e_input))
-    autoencodeur = Model(e_input,[d,code])
-    return autoencodeur
+    # Chain models
+    encoded = encoder(e_input)
+    decoded = decoder(encoded)
+    featured = perceptual_model(decoded)
+    # Define global models with multiple outputs
+    #autoencodeur = Model(e_input, [encoded, decoded, *featured])
+
+    block_2 = Lambda(lambda x:x, name = "VGG_block_2")(featured[0])
+    block_5 = Lambda(lambda x:x, name = "VGG_block_5")(featured[1])
+    autoencodeur = Model(e_input, [encoded, decoded, block_2, block_5])
+    # Return autoencodeur (we are going to train it) and perceptual_model (will be used in the loss)
+    return autoencodeur, perceptual_model
+
+    # e_input = Input(shape=e_input_shape, name="e_input_1")
+    # encodeur = Model(e_input,encoder(e_input))
+    #
+    # d, code = decoder(encodeur(e_input))
+    # autoencodeur = Model(e_input,[d,code])
+    # return autoencodeur
