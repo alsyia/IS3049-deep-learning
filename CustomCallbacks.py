@@ -22,15 +22,14 @@ class PredictCallback(Callback):
         img.show()
 
 class HuffmanCallback(Callback):
-    def __init__(self,obj_values, generator):
-        self.obj_values = obj_values
+    def __init__(self, generator):
         self.generator = generator
 
     def on_epoch_begin(self, epoch, logs={}):
         # codes = self.model.layers[1].predict(self.generator[0][0])[0]
         codes = self.model.predict(self.generator[0][0])[0]
         values, counts = np.unique(codes, return_counts = True)
-        self.obj_values.values = values[np.argsort(counts)]
+        values = values[np.argsort(counts)]
         print("values : {}".format(values))
 
 
@@ -142,11 +141,12 @@ def output_to_tf_img(output):
 
 class TensorBoardImage(Callback):
 
-    def __init__(self, tag, test_list, logs_path):
+    def __init__(self, tag, test_list, logs_path, save_img = False, exp_path = None):
         super().__init__()
         self.tag = tag
         self.logs_path = logs_path
         self.test_list = test_list
+        self.exp_path = exp_path
 
     def on_epoch_end(self, epoch, logs=None):
         summaries = []
@@ -156,6 +156,8 @@ class TensorBoardImage(Callback):
             input = image_to_input(path)
             output = self.model.predict(input)[1]
             output_img = output_to_tf_img(output)
+            img = PIL.Image.fromarray(np.uint8(output[0]*255))
+            img.save(self.exp_path + "/" + img_name)
             # summary = tf.Summary(value=[tf.Summary.Value(tag=self.tag + "_" + str(img_name), image=output_img)])
             summary = tf.Summary.Value(tag=self.tag + "_" + str(img_name), image=output_img)
             summaries.append(summary)

@@ -1,11 +1,11 @@
 import tensorflow as tf
-from keras.losses import mse
+from keras.losses import mse, mae
 
 from ModelConfig import *
 
 
 def loss(x_true, x_pred):
-    loss = loss_params["mse"] * mse(x_true, x_pred)
+    loss = loss_params["mse"] * mae(x_true, x_pred)
     return loss
 
 def code(x_true,x_pred):
@@ -16,9 +16,3 @@ def perceptual_2(x_true, x_pred):
 
 def perceptual_5(x_true, x_pred):
     return loss_params["perceptual_5"]*mse(x_true, x_pred)
-
-# def d(x_true, x_pred):
-#     return mse(x_true, x_pred)
-#
-# def q(x_true, x_pred):
-#     return mse(x_true, x_pred)
