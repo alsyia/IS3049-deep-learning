@@ -2,11 +2,11 @@ import os
 import pickle
 import PIL.Image
 import numpy as np
-from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping
-from keras.optimizers import Adam
-from keras.utils import plot_model
 from keras.applications import VGG19
+from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping
 from keras.models import Model
+from keras.optimizers import Adam
+
 from CustomCallbacks import TensorBoardImage, EncoderCheckpoint, HuffmanCallback
 from CustomLoss import loss, code, perceptual_2, perceptual_5
 from Generator import DataGenerator
@@ -18,7 +18,6 @@ from predict import predict_from_ae
 # sess = K.get_session()
 # sess = tf_debug.TensorBoardDebugWrapperSession(sess, "PC-Wenceslas:6004")
 # K.set_session(sess)
-
 
 train_list = os.listdir(dataset_path+"/"+train_dir)
 val_list = os.listdir(dataset_path+"/"+validation_dir)
@@ -40,9 +39,10 @@ perceptual_model = Model(inputs=base_model.input,
                          outputs=[base_model.get_layer("block2_pool").output,
                                   base_model.get_layer("block5_pool").output],
                          name="VGG")
-# hack to make it work with wenceslas computer
+# Make a prediction to force model instantiation, otherwise we have a really weird race condition issue
 perceptual_model.predict(img)
 print("Predicted")
+
 autoencoder, _ = build_model(perceptual_model)
 
 # create data generator
@@ -85,18 +85,23 @@ early_stopping = EarlyStopping(
 checkpoint = ModelCheckpoint("weights.hdf5", save_best_only=True)
 encodercheckpoint = EncoderCheckpoint("encoder.hdf5", save_best_only=True)
 tensorboard_image = TensorBoardImage(
-    "Reconstruction", test_list=test_list, logs_path='./logs/run' + str(log_index),save_img = True,exp_path= exp_path)
+    "Reconstruction", test_list=test_list, logs_path='./logs/run' + str(log_index), save_img=True, exp_path=exp_path)
 
 huffmancallback = HuffmanCallback(train_generator)
 
 
 history = autoencoder.fit_generator(train_generator,
-                          epochs=1,
-                          validation_data=test_generator,
-                          callbacks=[tensorboard_image, tensorboard, early_stopping, checkpoint, encodercheckpoint, huffmancallback])
+                                    epochs=1,
+                                    validation_data=test_generator,
+                                    callbacks=[tensorboard_image,
+                                               tensorboard,
+                                               early_stopping,
+                                               checkpoint,
+                                               encodercheckpoint,
+                                               huffmancallback])
 
 # dumping history into pickle for further use
 with open(exp_path + '/history', 'wb') as file_pi:
     pickle.dump(history.history, file_pi)
 
-predict_from_ae(dataset_path + "/" + validation_dir,autoencoder)
+predict_from_ae(dataset_path + "/" + validation_dir, autoencoder)
