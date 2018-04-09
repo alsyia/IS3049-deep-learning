@@ -34,7 +34,7 @@ class DataGenerator(keras.utils.Sequence):
         # Generate data
         X, B, F2, F5 = self.__data_generation(img_temp)
 
-        return X, [B, X, F2, F5]
+        return X, [B, X, F2, F5, F2]
 
     def on_epoch_end(self):
         'Updates indexes after each epoch'

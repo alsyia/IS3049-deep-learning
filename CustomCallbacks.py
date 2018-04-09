@@ -1,6 +1,6 @@
 import io
 import warnings
-
+import os
 import PIL
 import PIL.Image
 import numpy as np
@@ -157,7 +157,8 @@ class TensorBoardImage(Callback):
             output_img = output_to_tf_img(output)
             if self.save_img:
                 img = PIL.Image.fromarray(np.uint8(output[0]*255))
-                img.save(self.exp_path + "/" + img_name)
+                file_name = img_name.split('.')[0] + "_" + str(epoch) + ".png"
+                img.save(self.exp_path + "/" + file_name)
             summary = tf.Summary.Value(
                 tag=self.tag + "_" + str(img_name), image=output_img)
             summaries.append(summary)

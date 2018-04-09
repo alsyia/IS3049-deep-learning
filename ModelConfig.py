@@ -27,6 +27,6 @@ loss_params = {
     "mse": 1,
     "bit": 0,
     "perceptual_2": 0.001,
-    "perceptual_5": 1,
-    "texture_loss": 1
+    "perceptual_5": 0.1,
+    "texture": 0.000001
 }

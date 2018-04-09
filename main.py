@@ -8,7 +8,7 @@ from keras.models import Model
 from keras.optimizers import Adam
 
 from CustomCallbacks import TensorBoardImage, EncoderCheckpoint, HuffmanCallback
-from CustomLoss import loss, code, perceptual_2, perceptual_5
+from CustomLoss import loss, code, perceptual_2, perceptual_5,texture
 from Generator import DataGenerator
 from Model import build_model
 from ModelConfig import img_input_shape, dataset_path, train_dir, validation_dir, test_dir
@@ -67,7 +67,8 @@ optimizer = Adam(lr=1e-4, clipnorm=1)
 autoencoder.compile(optimizer=optimizer, loss={"clipping_layer_1": loss,
                                                "rounding_layer_1": code,
                                                "VGG_block_2": perceptual_2,
-                                               "VGG_block_5": perceptual_5})
+                                               "VGG_block_5": perceptual_5,
+                                               "texture_block_2": texture})
 
 # Get last log
 log_index = None
@@ -91,7 +92,7 @@ huffmancallback = HuffmanCallback(train_generator)
 
 
 history = autoencoder.fit_generator(train_generator,
-                                    epochs=1,
+                                    epochs=100,
                                     validation_data=test_generator,
                                     callbacks=[tensorboard_image,
                                                tensorboard,
