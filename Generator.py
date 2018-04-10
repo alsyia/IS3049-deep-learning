@@ -1,6 +1,7 @@
+import numpy as np
 import PIL
 import keras
-import numpy as np
+
 from Model import vgg_features
 from ModelConfig import *
 

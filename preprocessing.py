@@ -1,8 +1,10 @@
-import PIL
 import os
-from utils import mirror_padding
+
 import numpy as np
+import PIL
 from keras.datasets import cifar10
+
+from utils import mirror_padding
 
 
 def split_indices(nb_indices,train_ratio,val_ratio, seed = 8):

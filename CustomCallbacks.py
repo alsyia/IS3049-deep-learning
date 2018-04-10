@@ -1,11 +1,12 @@
 import io
+import warnings
 
+import numpy as np
+import PIL
 import PIL.Image
 import tensorflow as tf
 from keras.callbacks import Callback
-import PIL
-import numpy as np
-import warnings
+
 from ModelConfig import *
 
 

@@ -1,6 +1,6 @@
-import keras.backend as K
 import numpy as np
 import tensorflow as tf
+import keras.backend as K
 from keras.layers import Layer
 
 grad_clip = "GradientClipping"
