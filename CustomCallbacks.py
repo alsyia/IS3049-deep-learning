@@ -1,5 +1,6 @@
 import io
 import warnings
+import os
 
 import numpy as np
 import PIL
@@ -22,18 +23,17 @@ class PredictCallback(Callback):
         img = PIL.Image.fromarray(np.uint8(imgs[0]*255))
         img.show()
 
+
 class HuffmanCallback(Callback):
-    def __init__(self,obj_values, generator):
-        self.obj_values = obj_values
+    def __init__(self, generator):
         self.generator = generator
 
     def on_epoch_begin(self, epoch, logs={}):
         # codes = self.model.layers[1].predict(self.generator[0][0])[0]
         codes = self.model.predict(self.generator[0][0])[0]
-        values, counts = np.unique(codes, return_counts = True)
-        self.obj_values.values = values[np.argsort(counts)]
+        values, counts = np.unique(codes, return_counts=True)
+        values = values[np.argsort(counts)]
         print("values : {}".format(values))
-
 
 
 class EncoderCheckpoint(Callback):
@@ -93,9 +93,7 @@ class EncoderCheckpoint(Callback):
                         self.best = current
                         if self.save_weights_only:
                             self.model.save_weights(filepath, overwrite=True)
-                            # self.model.layers[1].save_weights(filepath, overwrite=True)
                         else:
-                            # self.model.layers[1].save(filepath, overwrite=True)
                             self.model.save(filepath, overwrite=True)
                     else:
                         if self.verbose > 0:
@@ -103,13 +101,13 @@ class EncoderCheckpoint(Callback):
                                   (epoch + 1, self.monitor))
             else:
                 if self.verbose > 0:
-                    print('\nEpoch %05d: saving model to %s' % (epoch + 1, filepath))
+                    print('\nEpoch %05d: saving model to %s' %
+                          (epoch + 1, filepath))
                 if self.save_weights_only:
-                    # self.model.layers[1].save_weights(filepath, overwrite=True)
                     self.model.save_weights(filepath, overwrite=True)
                 else:
                     self.model.save(filepath, overwrite=True)
-                    # self.model.layers[1].save(filepath, overwrite=True)
+
 
 def make_image(tensor):
     height, width, channel = tensor.shape
@@ -136,18 +134,19 @@ def output_to_tf_img(output):
     output = np.uint8(output * 255)
     output = output.reshape(*img_input_shape)
     output_img = make_image(output)
-    # return tf.summary.image("Reconstruction", output)
 
     return output_img
 
 
 class TensorBoardImage(Callback):
 
-    def __init__(self, tag, test_list, logs_path):
+    def __init__(self, tag, test_list, logs_path, save_img=False, exp_path=None):
         super().__init__()
         self.tag = tag
         self.logs_path = logs_path
         self.test_list = test_list
+        self.exp_path = exp_path
+        self.save_img = save_img
 
     def on_epoch_end(self, epoch, logs=None):
         summaries = []
@@ -157,11 +156,13 @@ class TensorBoardImage(Callback):
             input = image_to_input(path)
             output = self.model.predict(input)[1]
             output_img = output_to_tf_img(output)
-            # summary = tf.Summary(value=[tf.Summary.Value(tag=self.tag + "_" + str(img_name), image=output_img)])
-            summary = tf.Summary.Value(tag=self.tag + "_" + str(img_name), image=output_img)
+            if self.save_img:
+                img = PIL.Image.fromarray(np.uint8(output[0]*255))
+                file_name = img_name.split('.')[0] + "_" + str(epoch) + ".png"
+                img.save(self.exp_path + "/" + file_name)
+            summary = tf.Summary.Value(
+                tag=self.tag + "_" + str(img_name), image=output_img)
             summaries.append(summary)
         big_sum = tf.Summary(value=summaries)
         writer = tf.summary.FileWriter(self.logs_path)
-        # writer.add_summary(summary, epoch)
         writer.add_summary(big_sum, epoch)
-            # writer.close()
