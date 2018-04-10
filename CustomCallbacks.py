@@ -27,7 +27,8 @@ class HuffmanCallback(Callback):
         self.generator = generator
 
     def on_epoch_begin(self, epoch, logs={}):
-        codes = self.model.layers[1].predict(self.generator[0][0])[0]
+        # codes = self.model.layers[1].predict(self.generator[0][0])[0]
+        codes = self.model.predict(self.generator[0][0])[0]
         values, counts = np.unique(codes, return_counts = True)
         self.obj_values.values = values[np.argsort(counts)]
         print("values : {}".format(values))
@@ -90,9 +91,11 @@ class EncoderCheckpoint(Callback):
                                      current, filepath))
                         self.best = current
                         if self.save_weights_only:
-                            self.model.layers[1].save_weights(filepath, overwrite=True)
+                            self.model.save_weights(filepath, overwrite=True)
+                            # self.model.layers[1].save_weights(filepath, overwrite=True)
                         else:
-                            self.model.layers[1].save(filepath, overwrite=True)
+                            # self.model.layers[1].save(filepath, overwrite=True)
+                            self.model.save(filepath, overwrite=True)
                     else:
                         if self.verbose > 0:
                             print('\nEpoch %05d: %s did not improve' %
@@ -101,9 +104,11 @@ class EncoderCheckpoint(Callback):
                 if self.verbose > 0:
                     print('\nEpoch %05d: saving model to %s' % (epoch + 1, filepath))
                 if self.save_weights_only:
-                    self.model.layers[1].save_weights(filepath, overwrite=True)
+                    # self.model.layers[1].save_weights(filepath, overwrite=True)
+                    self.model.save_weights(filepath, overwrite=True)
                 else:
-                    self.model.layers[1].save(filepath, overwrite=True)
+                    self.model.save(filepath, overwrite=True)
+                    # self.model.layers[1].save(filepath, overwrite=True)
 
 def make_image(tensor):
     height, width, channel = tensor.shape
@@ -149,7 +154,7 @@ class TensorBoardImage(Callback):
             path = dataset_path + "/" + test_dir + "/" + img_name
 
             input = image_to_input(path)
-            output = self.model.predict(input)[0]
+            output = self.model.predict(input)[1]
             output_img = output_to_tf_img(output)
             # summary = tf.Summary(value=[tf.Summary.Value(tag=self.tag + "_" + str(img_name), image=output_img)])
             summary = tf.Summary.Value(tag=self.tag + "_" + str(img_name), image=output_img)
