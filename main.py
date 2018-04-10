@@ -8,6 +8,7 @@ from keras.utils import plot_model
 from keras.losses import mse
 from keras.applications import VGG19
 from keras.models import Model
+
 from CustomCallbacks import TensorBoardImage, EncoderCheckpoint, HuffmanCallback
 from CustomLoss import loss, code, perceptual_2, perceptual_5
 from Generator import DataGenerator
