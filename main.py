@@ -52,8 +52,10 @@ train_generator = DataGenerator(
 test_generator = DataGenerator(
     dataset_path + "/" + validation_dir, val_list, perceptual_model, 32, img_input_shape)
 
-# Plot model graph
-# plot_model(autoencoder, to_file='autoencoder.png')
+plot_model = False
+if plot_model:
+    # Plot model graph
+    plot_model(autoencoder, to_file='autoencoder.png')
 
 load_model = False
 if load_model:

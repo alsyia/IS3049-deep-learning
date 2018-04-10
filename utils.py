@@ -1,8 +1,9 @@
-import numpy as np
-import tensorflow as tf
 from datetime import datetime
 import os
 import shutil
+
+import numpy as np
+import tensorflow as tf
 
 def subpixel(x, scale=2):
     """
