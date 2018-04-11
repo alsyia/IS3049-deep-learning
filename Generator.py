@@ -2,7 +2,6 @@ import numpy as np
 import PIL
 import keras
 
-from Model import vgg_features
 from ModelConfig import *
 
 
