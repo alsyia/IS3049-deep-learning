@@ -1,9 +1,9 @@
 from itertools import count
 
-from keras.layers import Input, Conv2D, Add, LeakyReLU, Lambda
+from keras.layers import Input, Conv2D, Add, LeakyReLU, Lambda, Concatenate
 from keras.models import Model
 from keras.applications import VGG19
-from CustomLayers import ClippingLayer, RoundingLayer
+from CustomLayers import ClippingLayer, RoundingLayer, PatchingLayer
 from ModelConfig import *
 from utils import subpixel
 
@@ -108,9 +108,18 @@ def build_model(perceptual_model):
     # Add lambda layers to rename outputs, otherwise Keras will give the same name...
     block_2 = Lambda(lambda x: x, name="VGG_block_2")(featured[0])
     block_5 = Lambda(lambda x: x, name="VGG_block_5")(featured[1])
-    texture_2 = Lambda(lambda x: x, name="texture_block_2")(featured[0])
-
+    
+    patching_2 = PatchingLayer()(decoded)
+    textured = []
+    textured_rename = []
+    for idx in range(len(patching_2)):
+        textured += [perceptual_model(patching_2[idx])[0]]
+        textured_rename += [Lambda(lambda x: x,
+                                            name="texture_block_2_rename_"+str(idx))(textured[idx])]
+    print(len(textured))
+    concatenate = Concatenate(axis = -1)(textured_rename)
+    print(concatenate.shape)
     autoencodeur = Model(
-        e_input, [encoded, decoded, block_2, block_5, texture_2])
+        e_input, [encoded, decoded, block_2, block_5, concatenate])
     # Return autoencodeur (we are going to train it) and perceptual_model (will be used in the loss)
     return autoencodeur, perceptual_model

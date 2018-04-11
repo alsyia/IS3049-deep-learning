@@ -1,7 +1,7 @@
 import PIL
 import keras
 import numpy as np
-
+import tensorflow as tf
 from ModelConfig import *
 
 
@@ -26,15 +26,19 @@ class DataGenerator(keras.utils.Sequence):
     def __getitem__(self, index):
         'Generate one batch of data'
         # Generate indexes of the batch
-        indexes = self.indexes[index * self.batch_size:(index + 1) * self.batch_size]
+        indexes = self.indexes[index *
+                               self.batch_size:(index + 1) * self.batch_size]
 
         # Find list of IDs
         img_temp = [self.img_list[k] for k in indexes]
 
         # Generate data
         X, B, F2, F5 = self.__data_generation(img_temp)
-
-        return X, [B, X, F2, F5, F2]
+        F2_patch = tf.extract_image_patches(F2, ksizes=(1, 8, 8, 1),
+                                            strides=(1, 8, 8, 1),
+                                            rates=(1, 1, 1, 1),
+                                            padding="SAME")
+        return X, [B, X, F2, F5, F2_patch]
 
     def on_epoch_end(self):
         'Updates indexes after each epoch'
@@ -53,13 +57,29 @@ class DataGenerator(keras.utils.Sequence):
             img = PIL.Image.open(self.folder + "/" + img_temp[i])
             img = img.resize(img_input_shape[0:2], PIL.Image.ANTIALIAS)
             img = np.asarray(img)
-            X[i,] = img / 255
+            X[i, ] = img / 255
 
             # B sert juste à avoir une coherence entre les sorties du réseau et les verites terrains
             # il est rempli de 0
-            B[i,] = 0
+            B[i, ] = 0
 
         # On génère maintenant les features pour la perceptual_loss
         self.vgg._make_predict_function()
         F2, F5 = self.vgg.predict(X)
+
+        # On génère les patchs
+        output = tf.extract_image_patches(X,
+                                    ksizes=(1, 8, 8, 1),
+                                    strides=(1, 8, 8, 1),
+                                    rates=(1, 1, 1, 1), padding='SAME')
+        output = tf.reshape(output, (32, 8, 8, 3, 64))
+        output = tf.pad(output, [[0, 0], [28, 28], [28, 28], [0, 0], [0, 0]])
+
+        outputs = [tf.reshape(tf.slice(output,
+                                       begin=(0, 0, 0, 0, patch_idx),
+                                       size=(32, 64, 64, 3, 1)), shape=(32, 64, 64, 3)) for patch_idx in range(output.shape[-1])]
+        print(outputs[0].shape)
+        print(self.vgg.predict(outputs[0]).shape)
+        exit()
+
         return X, B, F2, F5

@@ -73,11 +73,11 @@ def load_cifar10(dst = "cifar10", nb_images = 2000):
         img = PIL.Image.fromarray(np.uint8(cifar[idx,:,:,:]))
         img.save(dst + "/test/test_{}.png".format(idx))
 
-def load_folder(src,dst,img_size,nb_images):
+def load_folder(src,dst,img_size,nb_images,train_ratio = 0.7, val_ratio = 0.2):
     img_list = os.listdir(src)
     img_list = img_list[:min(nb_images,len(img_list))]
 
-    train_index, val_index, test_index = split_indices(len(img_list),0.7,0.2)
+    train_index, val_index, test_index = split_indices(len(img_list),train_ratio,val_ratio)
 
     train_list = [img_list[i] for i in train_index]
     val_list = [img_list[i] for i in val_index]
@@ -85,5 +85,6 @@ def load_folder(src,dst,img_size,nb_images):
 
     store_data(src,dst,img_size,train_list,val_list,test_list)
     
-load_cifar10("cifar10", 2000)
-#load_folder("data", "test",(32,32))
+#load_cifar10("cifar10", 2000)
+#load_folder("test", "test2",(64,64),1)
+store_data('test','test2',(64,64),['1.jpg','2.png'],[],[])

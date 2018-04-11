@@ -80,4 +80,4 @@ if __name__ == "__main__":
     input_path = args.input
     weight_path = args.weight
 
-    predict(input_path,weight_path,limit)
+    predict_from_weights(input_path,weight_path,limit)

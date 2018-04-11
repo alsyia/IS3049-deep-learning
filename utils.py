@@ -4,6 +4,7 @@ from datetime import datetime
 import os
 import shutil
 
+
 def subpixel(x, scale=2):
     """
     function for Lambda - subpixel layer
@@ -43,3 +44,26 @@ def add_weight_experiment(exp_path, weight_path):
     if not os.path.exists(weight_path):
         raise Exception("weight path does not exists")
     shutil.copy(weight_path, exp_path)
+
+
+def generate_patch(img, patch_size, strides):
+    patch_i = img.shape[0]//strides[0]
+    patch_j = img.shape[1]//strides[1]
+
+    patchs = np.zeros([patch_size[0],patch_size[1], img.shape[2], patch_i*patch_j])
+    print(img)
+    patch_idx = 0
+    for i in range(patch_i):
+        for j in range(patch_j):
+            print(img[i*strides[0]*patch_size[0]:(i+1)*strides[0]*patch_size[0],
+                    j*strides[1]*patch_size[1]:(j+1)*strides[1]*patch_size[1],:])
+            patchs[:, :, :, patch_idx] = img[i*patch_size[0]:(i+1)*patch_size[0],
+                                                j*patch_size[1]:(j+1)*patch_size[1],
+                                                :]
+            patch_idx += 1
+    
+    return patchs
+
+
+a = np.reshape(np.arange(48),(4,4,3))
+print(generate_patch(a,(2,2),(1,1)))

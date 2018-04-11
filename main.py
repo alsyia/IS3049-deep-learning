@@ -23,6 +23,8 @@ train_list = os.listdir(dataset_path+"/"+train_dir)
 val_list = os.listdir(dataset_path+"/"+validation_dir)
 test_list = os.listdir(dataset_path+"/"+test_dir)
 
+seed = np.random.seed(seed = 8)
+
 img = PIL.Image.open(dataset_path + "/" + validation_dir + "/" + val_list[0])
 img_img = img.resize(img_input_shape[0:2], PIL.Image.ANTIALIAS)
 img = np.asarray(img_img) / 255
@@ -39,6 +41,11 @@ perceptual_model = Model(inputs=base_model.input,
                          outputs=[base_model.get_layer("block2_pool").output,
                                   base_model.get_layer("block5_pool").output],
                          name="VGG")
+# We don't want to train VGG
+perceptual_model.trainable = False
+for layer in perceptual_model.layers:
+    layer.trainable = False
+
 # Make a prediction to force model instantiation, otherwise we have a really weird race condition issue
 perceptual_model.predict(img)
 print("Predicted")
@@ -68,7 +75,7 @@ autoencoder.compile(optimizer=optimizer, loss={"clipping_layer_1": loss,
                                                "rounding_layer_1": code,
                                                "VGG_block_2": perceptual_2,
                                                "VGG_block_5": perceptual_5,
-                                               "texture_block_2": texture})
+                                               "concatenate_1": texture})
 
 # Get last log
 log_index = None
@@ -83,12 +90,11 @@ tensorboard = TensorBoard(log_dir='./logs/run' +
                           str(log_index), histogram_freq=0, batch_size=32)
 early_stopping = EarlyStopping(
     monitor='val_loss', min_delta=1e-5, patience=20, verbose=1, mode='auto')
-checkpoint = ModelCheckpoint("weights.hdf5", save_best_only=True)
-encodercheckpoint = EncoderCheckpoint("encoder.hdf5", save_best_only=True)
+checkpoint = ModelCheckpoint(exp_path + "/weights.hdf5", save_best_only=True)
+encodercheckpoint = EncoderCheckpoint(exp_path + "/encoder.hdf5", save_best_only=True)
 tensorboard_image = TensorBoardImage(
     "Reconstruction", test_list=test_list, logs_path='./logs/run' + str(log_index), save_img=True, exp_path=exp_path)
 
-huffmancallback = HuffmanCallback(train_generator)
 
 
 history = autoencoder.fit_generator(train_generator,
@@ -98,8 +104,7 @@ history = autoencoder.fit_generator(train_generator,
                                                tensorboard,
                                                early_stopping,
                                                checkpoint,
-                                               encodercheckpoint,
-                                               huffmancallback])
+                                               encodercheckpoint])
 
 # dumping history into pickle for further use
 with open(exp_path + '/history', 'wb') as file_pi:
