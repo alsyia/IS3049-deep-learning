@@ -78,8 +78,5 @@ class DataGenerator(keras.utils.Sequence):
         outputs = [tf.reshape(tf.slice(output,
                                        begin=(0, 0, 0, 0, patch_idx),
                                        size=(32, 64, 64, 3, 1)), shape=(32, 64, 64, 3)) for patch_idx in range(output.shape[-1])]
-        print(outputs[0].shape)
-        print(self.vgg.predict(outputs[0]).shape)
-        exit()
 
         return X, B, F2, F5

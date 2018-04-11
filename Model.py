@@ -109,16 +109,23 @@ def build_model(perceptual_model):
     block_2 = Lambda(lambda x: x, name="VGG_block_2")(featured[0])
     block_5 = Lambda(lambda x: x, name="VGG_block_5")(featured[1])
     
+    # Couche qui génère une liste de patchs
     patching_2 = PatchingLayer()(decoded)
+    print(patching_2[0].shape)
+    # On applique VGG sur chaque patch
     textured = []
     textured_rename = []
     for idx in range(len(patching_2)):
+        # On applique VGG et on recupere le block 2
         textured += [perceptual_model(patching_2[idx])[0]]
+        # On renomme la sortie de VGG
         textured_rename += [Lambda(lambda x: x,
                                             name="texture_block_2_rename_"+str(idx))(textured[idx])]
-    print(len(textured))
+    
+    # On concatene pour avoir une seule loss
+    # TO DO trouver comment decouper pour appliquer la texture loss ensuite
     concatenate = Concatenate(axis = -1)(textured_rename)
-    print(concatenate.shape)
+
     autoencodeur = Model(
         e_input, [encoded, decoded, block_2, block_5, concatenate])
     # Return autoencodeur (we are going to train it) and perceptual_model (will be used in the loss)

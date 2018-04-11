@@ -63,7 +63,3 @@ def generate_patch(img, patch_size, strides):
             patch_idx += 1
     
     return patchs
-
-
-a = np.reshape(np.arange(48),(4,4,3))
-print(generate_patch(a,(2,2),(1,1)))
