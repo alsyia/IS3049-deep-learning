@@ -140,13 +140,16 @@ def output_to_tf_img(output):
     return output_img
 
 
+
 class TensorBoardImage(Callback):
 
-    def __init__(self, tag, test_list, logs_path):
+    def __init__(self, tag, test_list, logs_path, save_img=False, exp_path=None):
         super().__init__()
         self.tag = tag
         self.logs_path = logs_path
         self.test_list = test_list
+        self.exp_path = exp_path
+        self.save_img = save_img
 
     def on_epoch_end(self, epoch, logs=None):
         summaries = []
@@ -156,11 +159,20 @@ class TensorBoardImage(Callback):
             input = image_to_input(path)
             output = self.model.predict(input)[1]
             output_img = output_to_tf_img(output)
-            # summary = tf.Summary(value=[tf.Summary.Value(tag=self.tag + "_" + str(img_name), image=output_img)])
-            summary = tf.Summary.Value(tag=self.tag + "_" + str(img_name), image=output_img)
+            if self.save_img:
+                img = PIL.Image.fromarray(np.uint8(output[0]*255))
+                file_name = img_name.split('.')[0] + "_" + str(epoch) + ".png"
+                img.save(self.exp_path + "/" + file_name)
+            summary = tf.Summary.Value(
+                tag=self.tag + "_" + str(img_name), image=output_img)
             summaries.append(summary)
         big_sum = tf.Summary(value=summaries)
         writer = tf.summary.FileWriter(self.logs_path)
-        # writer.add_summary(summary, epoch)
         writer.add_summary(big_sum, epoch)
-            # writer.close()
+
+# function for learning scheduler
+def schedule(epoch):
+    if epoch > 50:
+        return 1e-4
+    else:
+        return 1e-5

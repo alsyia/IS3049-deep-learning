@@ -4,33 +4,30 @@ import numpy as np
 import PIL.Image
 from keras.models import Model
 from keras.optimizers import Adam
-from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping
+from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping, LearningRateScheduler
 from keras.losses import mse
 from keras.applications import VGG19
 from keras.utils import plot_model as keras_utils_plot_model
 
-from CustomCallbacks import TensorBoardImage, EncoderCheckpoint, HuffmanCallback
+from CustomCallbacks import TensorBoardImage, EncoderCheckpoint, HuffmanCallback, schedule
 from CustomLoss import loss, code, perceptual_2, perceptual_5
 from Generator import DataGenerator
 from Model import build_model
 from ModelConfig import img_input_shape, dataset_path, train_dir, validation_dir, test_dir
+from utils import generate_experiment
+from predict import predict_from_ae
 
-# sess = K.get_session()
-# sess = tf_debug.TensorBoardDebugWrapperSession(sess, "PC-Wenceslas:6004")
-# K.set_session(sess)
-
-# Test with CIFAR10 dataset for now, has images of size (32, 32, 3)
-
-
+# On importe les données
 train_list = os.listdir(dataset_path+"/"+train_dir)
 val_list = os.listdir(dataset_path+"/"+validation_dir)
 test_list = os.listdir(dataset_path+"/"+test_dir)
 
-train_ratio = 0.7
-val_ratio = 0.2
+# On crée le dossier
+exp_path = generate_experiment()
 
 # Instanciate the VGG used for texture loss
-base_model = VGG19(weights="imagenet", include_top=False, input_shape=img_input_shape)
+base_model = VGG19(weights="imagenet", include_top=False,
+                   input_shape=img_input_shape)
 
 # Get the relevant layers
 perceptual_model = Model(inputs=base_model.input,
@@ -55,8 +52,10 @@ print("Predicted")
 autoencoder, _ = build_model(perceptual_model)
 
 # Create generator for both train data
-train_generator = DataGenerator(dataset_path + "/" + train_dir, train_list, perceptual_model, 32, img_input_shape)
-test_generator = DataGenerator(dataset_path + "/" + validation_dir, val_list, perceptual_model, 32, img_input_shape)
+train_generator = DataGenerator(
+    dataset_path + "/" + train_dir, train_list, perceptual_model, 32, img_input_shape)
+test_generator = DataGenerator(
+    dataset_path + "/" + validation_dir, val_list, perceptual_model, len(val_list), img_input_shape)
 
 
 plot_model = False
@@ -74,9 +73,9 @@ if load_model:
 # Compile model with adam optimizer
 optimizer = Adam(lr=1e-4, clipnorm=1)
 autoencoder.compile(optimizer=optimizer, loss={"clipping_layer_1": loss,
-                                                "rounding_layer_1": code,
-                                                "VGG_block_2": perceptual_2,
-                                                "VGG_block_5": perceptual_5})
+                                               "rounding_layer_1": code,
+                                               "VGG_block_2": perceptual_2,
+                                               "VGG_block_5": perceptual_5})
 
 # Get last log
 log_index = None
@@ -89,44 +88,35 @@ else:
 
 # Create callbacks here.
 tensorboard = TensorBoard(
-    log_dir='./logs/run' + str(log_index), 
-    histogram_freq=0, 
+    log_dir='./logs/run' + str(log_index),
+    histogram_freq=0,
     batch_size=32)
 tensorboard_image = TensorBoardImage(
     "Reconstruction",
     test_list=test_list,
-    logs_path='./logs/run' + str(log_index))
+    logs_path='./logs/run' + str(log_index),
+    save_img=True,
+    exp_path=exp_path)
 early_stopping = EarlyStopping(
-    monitor='val_loss', 
-    min_delta=1e-5, 
-    patience=20, 
-    verbose=1, 
+    monitor='val_loss',
+    min_delta=1e-5,
+    patience=20,
+    verbose=1,
     mode='auto')
 checkpoint = ModelCheckpoint("weights.hdf5", save_best_only=True)
-encodercheckpoint = EncoderCheckpoint("encoder.hdf5", save_best_only=True)
-huffmancallback = HuffmanCallback(train_generator)
+lr_decay = LearningRateScheduler(schedule)
 
-autoencoder.fit_generator(train_generator,
-                          epochs=100,
-                          validation_data=test_generator,
-                          callbacks=[
-                              tensorboard_image, 
-                              tensorboard, 
-                              early_stopping, 
-                              checkpoint,
-                              encodercheckpoint,
-                              huffmancallback])
+history = autoencoder.fit_generator(train_generator,
+                                    epochs=100,
+                                    validation_data=test_generator[0],
+                                    callbacks=[tensorboard_image,
+                                               tensorboard,
+                                               early_stopping,
+                                               checkpoint,
+                                               lr_decay])
 
+# dumping history into pickle for further use
+with open(exp_path + '/history', 'wb') as file_pi:
+    pickle.dump(history.history, file_pi)
 
-img = PIL.Image.open(dataset_path +"/" + validation_dir + "/" +val_list[0])
-img_img = img.resize(img_input_shape[0:2], PIL.Image.ANTIALIAS)
-img = np.asarray(img_img) / 255
-img = img.reshape(1, *img_input_shape)
-reconstruction = autoencoder.predict(img)
-reconstruction = reconstruction[1]*255
-reconstruction = np.clip(reconstruction, 0, 255)
-reconstruction = np.uint8(reconstruction)
-reconstruction = reconstruction.reshape(*img_input_shape)
-reconstruction_img = PIL.Image.fromarray(reconstruction)
-img_img.save("input.png")
-reconstruction_img.save("output.png")
+predict_from_ae(dataset_path + "/" + validation_dir, autoencoder)
