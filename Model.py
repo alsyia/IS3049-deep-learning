@@ -1,9 +1,9 @@
 from itertools import count
 
-from keras.layers import Input, Conv2D, Add, LeakyReLU, Lambda
+from keras.layers import Input, Conv2D, Add, LeakyReLU, Lambda, Concatenate
 from keras.models import Model
 from keras.applications import VGG19
-from CustomLayers import ClippingLayer, RoundingLayer
+from CustomLayers import ClippingLayer, RoundingLayer, PatchingLayer
 from ModelConfig import *
 from utils import subpixel
 
@@ -25,9 +25,11 @@ def encoder(e_input):
 
     # Create three residual blocks
     for i in range(3):
-        e = Conv2D(name="e_conv_" + str(next(conv_index)), **e_res_block_conv_params)(e)
+        e = Conv2D(name="e_conv_" + str(next(conv_index)),
+                   **e_res_block_conv_params)(e)
         e = LeakyReLU(alpha=a, name="e_leaky_" + str(next(leaky_index)))(e)
-        e = Conv2D(name="e_conv_" + str(next(conv_index)), **e_res_block_conv_params)(e)
+        e = Conv2D(name="e_conv_" + str(next(conv_index)),
+                   **e_res_block_conv_params)(e)
         e = Add(name="e_add_" + str(next(add_index)))([e, e_skip_connection])
         e_skip_connection = e
 
@@ -45,35 +47,41 @@ def decoder(encoded):
     leaky_index = count(start=1)
     add_index = count(start=1)
 
-
     d = Conv2D(filters=512, kernel_size=(3, 3), padding='same', strides=(1, 1), name="d_conv_" + str(next(conv_index)))(
         encoded)
-    d = Lambda(function=subpixel, name="d_lambda_" + str(next(lambda_index)))(d)
+    d = Lambda(function=subpixel, name="d_lambda_" +
+               str(next(lambda_index)))(d)
 
     d_skip_connection = d
 
     # Add three residual blocks
     for j in range(3):
-        d = Conv2D(name="d_conv_" + str(next(conv_index)), **d_res_block_conv_params)(d)
+        d = Conv2D(name="d_conv_" + str(next(conv_index)),
+                   **d_res_block_conv_params)(d)
         d = LeakyReLU(alpha=a, name="d_leaky_" + str(next(leaky_index)))(d)
-        d = Conv2D(name="d_conv_" + str(next(conv_index)), **d_res_block_conv_params)(d)
+        d = Conv2D(name="d_conv_" + str(next(conv_index)),
+                   **d_res_block_conv_params)(d)
         d = Add(name="d_add_" + str(next(add_index)))([d, d_skip_connection])
         d_skip_connection = d
 
     d = Conv2D(filters=256, kernel_size=(3, 3), padding='same', strides=(1, 1), name="d_conv_" + str(next(conv_index)))(
         d)
-    d = Lambda(function=subpixel, name="d_lambda_" + str(next(lambda_index)))(d)
+    d = Lambda(function=subpixel, name="d_lambda_" +
+               str(next(lambda_index)))(d)
 
     d = Conv2D(filters=12, kernel_size=(3, 3), padding='same', strides=(1, 1), name="d_conv_" + str(next(conv_index)))(
         d)
-    d = Lambda(function=subpixel, name="d_lambda_" + str(next(lambda_index)))(d)
+    d = Lambda(function=subpixel, name="d_lambda_" +
+               str(next(lambda_index)))(d)
 
     d = ClippingLayer(0, 1)(d)
 
     return d
 
+
 def vgg_features():
-    base_model = VGG19(weights="imagenet", include_top=False, input_shape=img_input_shape)
+    base_model = VGG19(weights="imagenet", include_top=False,
+                       input_shape=img_input_shape)
     perceptual_model = Model(inputs=base_model.input,
                              outputs=[base_model.get_layer("block2_pool").output,
                                       base_model.get_layer("block5_pool").output],
@@ -86,7 +94,9 @@ def vgg_features():
 
     return perceptual_model
 
+
 def build_model(perceptual_model):
+
     # Define input layer
     e_input = Input(shape=e_input_shape, name="e_input_1")
     # Chain models
@@ -94,17 +104,22 @@ def build_model(perceptual_model):
     decoded = decoder(encoded)
     featured = perceptual_model(decoded)
     # Define global models with multiple outputs
-    #autoencodeur = Model(e_input, [encoded, decoded, *featured])
 
-    block_2 = Lambda(lambda x:x, name = "VGG_block_2")(featured[0])
-    block_5 = Lambda(lambda x:x, name = "VGG_block_5")(featured[1])
-    autoencodeur = Model(e_input, [encoded, decoded, block_2, block_5])
+    # Add lambda layers to rename outputs, otherwise Keras will give the same name...
+    block_2 = Lambda(lambda x: x, name="VGG_block_2")(featured[0])
+    block_5 = Lambda(lambda x: x, name="VGG_block_5")(featured[1])
+    
+    patching_2 = PatchingLayer()(decoded)
+    textured = []
+    textured_rename = []
+    for idx in range(len(patching_2)):
+        textured += [perceptual_model(patching_2[idx])[0]]
+        textured_rename += [Lambda(lambda x: x,
+                                            name="texture_block_2_rename_"+str(idx))(textured[idx])]
+    print(len(textured))
+    concatenate = Concatenate(axis = -1)(textured_rename)
+    print(concatenate.shape)
+    autoencodeur = Model(
+        e_input, [encoded, decoded, block_2, block_5, concatenate])
     # Return autoencodeur (we are going to train it) and perceptual_model (will be used in the loss)
     return autoencodeur, perceptual_model
-
-    # e_input = Input(shape=e_input_shape, name="e_input_1")
-    # encodeur = Model(e_input,encoder(e_input))
-    #
-    # d, code = decoder(encodeur(e_input))
-    # autoencodeur = Model(e_input,[d,code])
-    # return autoencodeur
