@@ -3,6 +3,7 @@ from itertools import count
 from keras.layers import Input, Conv2D, Add, LeakyReLU, Lambda
 from keras.models import Model
 from keras.applications import VGG19
+
 from CustomLayers import ClippingLayer, RoundingLayer
 from ModelConfig import *
 from utils import subpixel
@@ -72,19 +73,6 @@ def decoder(encoded):
 
     return d
 
-def vgg_features():
-    base_model = VGG19(weights="imagenet", include_top=False, input_shape=img_input_shape)
-    perceptual_model = Model(inputs=base_model.input,
-                             outputs=[base_model.get_layer("block2_pool").output,
-                                      base_model.get_layer("block5_pool").output],
-                             name="VGG")
-
-    # We don't want to train VGG
-    perceptual_model.trainable = False
-    for layer in perceptual_model.layers:
-        layer.trainable = False
-
-    return perceptual_model
 
 def build_model(perceptual_model):
     # Define input layer

@@ -1,11 +1,12 @@
 import io
+import warnings
 
+import numpy as np
+import PIL
 import PIL.Image
 import tensorflow as tf
 from keras.callbacks import Callback
-import PIL
-import numpy as np
-import warnings
+
 from ModelConfig import *
 
 
@@ -21,18 +22,17 @@ class PredictCallback(Callback):
         img = PIL.Image.fromarray(np.uint8(imgs[0]*255))
         img.show()
 
+
 class HuffmanCallback(Callback):
-    def __init__(self,obj_values, generator):
-        self.obj_values = obj_values
+    def __init__(self, generator):
         self.generator = generator
 
     def on_epoch_begin(self, epoch, logs={}):
         # codes = self.model.layers[1].predict(self.generator[0][0])[0]
         codes = self.model.predict(self.generator[0][0])[0]
         values, counts = np.unique(codes, return_counts = True)
-        self.obj_values.values = values[np.argsort(counts)]
+        values = values[np.argsort(counts)]
         print("values : {}".format(values))
-
 
 
 class EncoderCheckpoint(Callback):

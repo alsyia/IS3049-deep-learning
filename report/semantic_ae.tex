@@ -1,0 +1,81 @@
+\documentclass[10pt,twocolumn,letterpaper]{article}
+\usepackage[french]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{cvpr}
+\usepackage{times}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% Include other packages here, before hyperref.
+
+% If you comment hyperref and then uncomment it, you should delete
+% egpaper.aux before re-running latex.  (Or just hit 'q' on the first latex
+% run, let it finish, and you should be clear).
+\usepackage[breaklinks=true,bookmarks=false]{hyperref}
+
+\cvprfinalcopy % *** Uncomment this line for the final submission
+
+\def\cvprPaperID{****} % *** Enter the CVPR Paper ID here
+\def\httilde{\mbox{\tt\raisebox{-.5ex}{\symbol{126}}}}
+
+% Pages are numbered in submission mode, and unnumbered in camera-ready
+%\ifcvprfinal\pagestyle{empty}\fi
+\setcounter{page}{4321}
+\begin{document}
+
+\title{Image compression with autoencoders using semantic loss function}
+
+\author{Romain Meynard\\
+{\tt\small romain.meynard@student.ecp.fr}
+\and
+Wenceslas des Déserts \\
+{\tt\small venceslas.danguy-des-deserts@student.ecp.fr}
+\and
+Silvestre Perret \\
+{\tt\small silvestre.perret@student.ecp.fr}	 \\
+\\
+CentraleSupélec\\
+}
+
+\maketitle
+%\thispagestyle{empty}
+
+\begin{abstract}
+   The ABSTRACT is to be in fully-justified italicized text, at the top
+   of the left-hand column, below the author and affiliation
+   information. Use the word ``Abstract'' as the title, in 12-point
+   Times, boldface type, centered relative to the column, initially
+   capitalized. The abstract is to be in 10-point, single-spaced type.
+   Leave two blank lines after the Abstract, then begin the main text.
+   Look at previous CVPR abstracts to get a feel for style and length.
+\end{abstract}
+
+\section{Introduction}
+
+\section{State of the art}
+We should write a few lines about \cite{theis_lossy_2017} (which model we used), \cite{sajjadi_enhancenet:_2016} (gave us ideas for the loss functions) and also about \cite{gatys_texture_2015} in which texture loss was first introduced.
+
+\section{Model}
+
+Explain our archictecture and all the small tricks we used (custom derivatives, all this stuff). 
+
+\section{Experiments}
+
+Which dataset did we use, why and how ?
+
+\section{Results}
+
+Probably a bunch of nice images showing how great our autoencoder performs.
+
+\section{Discussion} % Conclusion ?
+
+What did we do ? Are our results good ? What could we do next if we were not writing this report less than four days before the deadline ?
+
+{\small
+\bibliographystyle{ieee}
+\bibliography{semantic_ae}
+}
+
+\end{document}

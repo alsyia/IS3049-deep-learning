@@ -25,6 +25,7 @@ d_res_block_conv_params = {  # Parameters of residual blocks
 
 # Loss
 loss_params = {
+    "mae": 1,
     "mse": 1,
     "bit": 0,
     "perceptual_2": 1,
