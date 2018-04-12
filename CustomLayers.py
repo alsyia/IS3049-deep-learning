@@ -121,7 +121,7 @@ class PatchingLayer(Layer):
 
     def compute_output_shape(self, input_shape):
         # TO DO : le nombre de patch est toujours hard codé
-        return (16*64, *self.output_size, input_shape[3])
+        return (2*64, *self.output_size, input_shape[3])
 
 class DePatchingLayer(Layer):
     def __init__(self, **kwargs):

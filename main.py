@@ -67,7 +67,7 @@ autoencoder, _ = build_model(perceptual_model)
 
 # create data generator
 train_generator = DataGenerator(
-    dataset_path + "/" + train_dir, train_list, perceptual_model, texture_model, 16, img_input_shape)
+    dataset_path + "/" + train_dir, train_list, perceptual_model, texture_model, 2, img_input_shape)
 test_generator = DataGenerator(
     dataset_path + "/" + validation_dir, val_list, perceptual_model, texture_model, len(val_list), img_input_shape)
 
