@@ -50,13 +50,26 @@ for layer in perceptual_model.layers:
 perceptual_model.predict(img)
 print("Predicted")
 
+texture_model = Model(inputs=base_model.input,
+                         outputs=[base_model.get_layer("block2_pool").output],
+                         name="VGG")
+# We don't want to train VGG
+texture_model.trainable = False
+for layer in texture_model.layers:
+    layer.trainable = False
+
+# Make a prediction to force model instantiation, otherwise we have a really weird race condition issue
+texture_model.predict(img)
+print("Predicted")
+
+
 autoencoder, _ = build_model(perceptual_model)
 
 # create data generator
 train_generator = DataGenerator(
-    dataset_path + "/" + train_dir, train_list, perceptual_model, 32, img_input_shape)
+    dataset_path + "/" + train_dir, train_list, perceptual_model, texture_model, 32, img_input_shape)
 test_generator = DataGenerator(
-    dataset_path + "/" + validation_dir, val_list, perceptual_model, 32, img_input_shape)
+    dataset_path + "/" + validation_dir, val_list, perceptual_model, texture_model, 32, img_input_shape)
 
 # Plot model graph
 # plot_model(autoencoder, to_file='autoencoder.png')

@@ -1,19 +1,21 @@
 import PIL
 import keras
+import keras.backend as K
 import numpy as np
 import tensorflow as tf
 from ModelConfig import *
-
+from utils import extract_patches
 
 class DataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
 
-    def __init__(self, folder, img_list, vgg, batch_size=32, dim=(32, 32, 3), shuffle=True):
+    def __init__(self, folder, img_list, vgg_perceptual, vgg_texture, batch_size=32, dim=(32, 32, 3), shuffle=True):
         'Initialization'
         self.dim = dim
         self.batch_size = batch_size
         self.img_list = img_list
-        self.vgg = vgg
+        self.vgg_perceptual = vgg_perceptual
+        self.vgg_texture = vgg_texture
         self.folder = folder
         self.len_data = len(img_list)
         self.shuffle = shuffle
@@ -33,12 +35,15 @@ class DataGenerator(keras.utils.Sequence):
         img_temp = [self.img_list[k] for k in indexes]
 
         # Generate data
-        X, B, F2, F5 = self.__data_generation(img_temp)
-        F2_patch = tf.extract_image_patches(F2, ksizes=(1, 8, 8, 1),
-                                            strides=(1, 8, 8, 1),
-                                            rates=(1, 1, 1, 1),
-                                            padding="SAME")
-        return X, [B, X, F2, F5, F2_patch]
+        X, B, F2, F5, F2_patches = self.__data_generation(img_temp)
+        # F2_patch = tf.extract_image_patches(F2, ksizes=(1, 8, 8, 1),
+        #                                     strides=(1, 8, 8, 1),
+        #                                     rates=(1, 1, 1, 1),
+        #                                     padding="SAME")
+        # with K.get_session():
+        #     F2_patch = F2_patch.eval()
+
+        return X, [B, X, F2, F5, F2_patches]
 
     def on_epoch_end(self):
         'Updates indexes after each epoch'
@@ -64,19 +69,36 @@ class DataGenerator(keras.utils.Sequence):
             B[i, ] = 0
 
         # On génère maintenant les features pour la perceptual_loss
-        self.vgg._make_predict_function()
-        F2, F5 = self.vgg.predict(X)
+        self.vgg_perceptual._make_predict_function()
+        self.vgg_texture._make_predict_function()
+        F2, F5 = self.vgg_perceptual.predict(X)
 
         # On génère les patchs
-        output = tf.extract_image_patches(X,
-                                    ksizes=(1, 8, 8, 1),
-                                    strides=(1, 8, 8, 1),
-                                    rates=(1, 1, 1, 1), padding='SAME')
-        output = tf.reshape(output, (32, 8, 8, 3, 64))
-        output = tf.pad(output, [[0, 0], [28, 28], [28, 28], [0, 0], [0, 0]])
+        print("[Generator] Shape of X: " + str(X.shape))
+        print("[Generator] Shape of F2: " + str(F2.shape))
+        # Renvoie un tenseur de taille (batch_size*#patches, 8, 8, 3)
+        patches = extract_patches(X, (8, 8, 3), (8,8))
+        print("[Generator] Patches array shape : " + str(patches.shape))
+        # On padde : (batch_size*#patches, 64, 64, 3)
+        padded_patches = np.pad(patches, [[0, 0], [28, 28], [28, 28], [0, 0]], "constant")
+        print("[Generator] Padded patches array shape : " + str(padded_patches.shape))
+        # On envoie tout ça comme un gros batch dans le VGG
+        # On récupère une liste de 2048 éléments de taille (16, 16, 128)
+        textures = self.vgg_texture.predict(padded_patches)
+        print("[Generator] Textures array shape : " + str(textures[0].shape))
+        print("[Generator] Texture list length : " + str(len(textures)))
+        # On fait des arrays de taille (64, 16, 16, 128), chaque array correspondant aux textures d'une
+        # image
+        textures_grouped = []
+        for i in range(0, len(textures), 64):
+            textures_grouped.append(np.stack(textures[i:i+64], 0))
+        print("[Generator] Grouped textures array shape : " + str(textures_grouped[0].shape))
+        print("[Generator] Grouped textures list length : " + str(len(textures_grouped)))
+        # Et on stacke pour avoir un tenseur (32, 64, 16, 16, 128) qui se lit comme suit :
+        #   Pour chaque image
+        #       Pour chaque patch
+        #           Sortie du VGG de taille (16, 16, 128)
+        textures_stacked = np.stack(textures_grouped, axis=0)
+        print("[Generator] Final texture shape : " + str(textures_stacked.shape))
 
-        outputs = [tf.reshape(tf.slice(output,
-                                       begin=(0, 0, 0, 0, patch_idx),
-                                       size=(32, 64, 64, 3, 1)), shape=(32, 64, 64, 3)) for patch_idx in range(output.shape[-1])]
-
-        return X, B, F2, F5
+        return X, B, F2, F5, textures_stacked
