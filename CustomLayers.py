@@ -107,27 +107,38 @@ class PatchingLayer(Layer):
         super(PatchingLayer, self).build(input_shape)
 
     def call(self, x, mask=None):
-        output = tf.extract_image_patches(x,
+        permute = tf.transpose(x, perm = [3,1,2,0])
+        patches = tf.extract_image_patches(permute,
                                           ksizes=(1, *self.patch_size, 1),
                                           strides=(1, *self.strides, 1),
                                           rates=(1, 1, 1, 1), padding='SAME')
-
-        # on reshape pour séparer les patchs des channels
-        # TO DO : verifier que les patchs et channels sont correctement séparés.
-        output = tf.reshape(output, (tf.shape(x)[0], *self.patch_size, x.shape[3], output.shape[3]//3))
-
-        # on pad pour atteindre une taille (32,64,64,3,8)
+        permute_2 = tf.transpose(patches, perm = [3,1,2,0])
+        
         pad = [(self.output_size[0] - self.patch_size[0])//2,
                (self.output_size[1] - self.patch_size[1])//2]
-        output = tf.pad(output, [[0, 0], pad, pad, [0, 0], [0, 0]])
-
-        # on génère une liste de tenseur, chaque tenseur est un patch paddé
-        final_size = (tf.shape(x)[0], *self.output_size, x.shape[3])
-        outputs = [tf.reshape(tf.slice(output,
-                                       begin=(0, 0, 0, 0, patch_idx),
-                                       size=(*final_size, 1)), shape=final_size) for patch_idx in range(output.shape[-1])]
-        return outputs
+        padded = tf.pad(permute_2, [[0, 0], pad, pad, [0, 0]])
+        return padded
 
     def compute_output_shape(self, input_shape):
         # TO DO : le nombre de patch est toujours hard codé
-        return [(input_shape[0], self.patch_size[0], self.patch_size[1], input_shape[3]) for idx in range(64)]
+        return (16*64, *self.output_size, input_shape[3])
+
+class DePatchingLayer(Layer):
+    def __init__(self, **kwargs):
+        super(DePatchingLayer, self).__init__(**kwargs)
+        self.supports_masking = False
+        self.patch_size = (8, 8)
+        self.strides = (8, 8)
+        self.output_size = (64, 64)
+
+    def build(self, input_shape):
+        self.trainable_weights = []
+        super(DePatchingLayer, self).build(input_shape)
+
+    def call(self, x, mask=None):
+        depatch = tf.reshape(x,(tf.shape(x)[0]//64,64,tf.shape(x)[1],tf.shape(x)[2],tf.shape(x)[3]))
+        return depatch
+
+    def compute_output_shape(self, input_shape):
+        # TO DO : le nombre de patch est toujours hard codé
+        return (input_shape[0]//64,64, input_shape[1], input_shape[2], input_shape[3])

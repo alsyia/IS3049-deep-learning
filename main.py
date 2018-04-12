@@ -67,9 +67,9 @@ autoencoder, _ = build_model(perceptual_model)
 
 # create data generator
 train_generator = DataGenerator(
-    dataset_path + "/" + train_dir, train_list, perceptual_model, texture_model, 32, img_input_shape)
+    dataset_path + "/" + train_dir, train_list, perceptual_model, texture_model, 16, img_input_shape)
 test_generator = DataGenerator(
-    dataset_path + "/" + validation_dir, val_list, perceptual_model, texture_model, 32, img_input_shape)
+    dataset_path + "/" + validation_dir, val_list, perceptual_model, texture_model, len(val_list), img_input_shape)
 
 # Plot model graph
 # plot_model(autoencoder, to_file='autoencoder.png')
@@ -88,7 +88,7 @@ autoencoder.compile(optimizer=optimizer, loss={"clipping_layer_1": loss,
                                                "rounding_layer_1": code,
                                                "VGG_block_2": perceptual_2,
                                                "VGG_block_5": perceptual_5,
-                                               "concatenate_1": texture})
+                                               "de_patching_layer_1": texture})
 
 # Get last log
 log_index = None

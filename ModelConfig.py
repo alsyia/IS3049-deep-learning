@@ -1,5 +1,5 @@
 # Dataset
-dataset_path = "./big_faces"
+dataset_path = "./celeba64_debug100"
 test_dir = "test"
 train_dir = "train"
 validation_dir = "val"
