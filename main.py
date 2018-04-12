@@ -49,7 +49,7 @@ def train(autoencoder,
         save_img=True,
         exp_path=exp_path)
 
-    checkpoint = ModelCheckpoint("weights.hdf5", save_best_only=True)
+    checkpoint = ModelCheckpoint(exp_path + "/weights.hdf5", save_best_only=True)
 
     history = autoencoder.fit_generator(train_generator,
                                         epochs=nb_epochs,
@@ -135,7 +135,7 @@ if __name__ == '__main__':
         mode='auto')
 
     autoencoder = train(autoencoder,
-                        1,
+                        100,
                         exp_path,
                         train_generator,
                         val_generator,
