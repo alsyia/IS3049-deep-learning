@@ -91,3 +91,8 @@ def build_model(perceptual_model):
     return autoencodeur, perceptual_model
 
 
+def get_encoder(autoencoder):
+    return autoencoder.layers[1]
+
+def get_decoder(autoencoder):
+    return autoencoder.layers[2]

@@ -50,13 +50,14 @@ def train(autoencoder,
         exp_path=exp_path)
 
     checkpoint = ModelCheckpoint(exp_path + "/weights.hdf5", save_best_only=True)
-
+    huffman = HuffmanCallback(val_generator[0][0])
     history = autoencoder.fit_generator(train_generator,
                                         epochs=nb_epochs,
                                         validation_data=val_generator[0],
                                         callbacks=[tensorboard_image,
                                                    tensorboard,
-                                                   checkpoint] + extra_callbacks)
+                                                   checkpoint,
+                                                   huffman] + extra_callbacks)
 
     # dumping history into pickle for further use
     with open(exp_path + '/history', 'wb') as file_pi:
@@ -94,7 +95,6 @@ if __name__ == '__main__':
     img = np.asarray(img_img) / 255
     img = img.reshape(1, *img_input_shape)
     perceptual_model.predict(img)
-    print("Predicted")
 
     # Build the model (see Model.py)
     autoencoder, _ = build_model(perceptual_model)

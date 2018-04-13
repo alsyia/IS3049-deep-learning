@@ -19,9 +19,9 @@ def entropy(x_true, x_pred):
     flat = tf.reshape(x_pred, shape = [tf.shape(x_pred)[0]*tf.shape(x_pred)[1]*tf.shape(x_pred)[2]*tf.shape(x_pred)[3]])
     y, idx, count = tf.unique_with_counts(flat, out_idx=tf.int32)
     count = tf.cast(count, tf.float32)
-    print(count)
+
     sum_count = tf.reduce_sum(count)
-    print(sum_count)
+
     freq = tf.divide(count,sum_count)
     entropy = tf.reduce_mean(-tf.reduce_sum(freq * tf.log(freq)))
     return entropy
