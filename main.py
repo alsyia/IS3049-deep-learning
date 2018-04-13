@@ -67,9 +67,15 @@ autoencoder, _ = build_model(perceptual_model, texture_model)
 
 # create data generator
 train_generator = DataGenerator(
-    DATASET_PATH + "/" + TRAIN_DIR, train_list, perceptual_model, texture_model, BATCH_SIZE, INPUT_SHAPE)
+    DATASET_PATH + "/" + TRAIN_DIR, train_list, perceptual_model, texture_model,"model", BATCH_SIZE, INPUT_SHAPE)
 test_generator = DataGenerator(
-    DATASET_PATH + "/" + VALIDATION_DIR, val_list, perceptual_model, texture_model, BATCH_SIZE, INPUT_SHAPE)
+    DATASET_PATH + "/" + VALIDATION_DIR, val_list, perceptual_model, texture_model,"model", BATCH_SIZE, INPUT_SHAPE)
+
+
+#train_generator = DataGenerator(
+#    DATASET_PATH + "/" + TRAIN_DIR, train_list, perceptual_model, "celeba64_debug/texture_train","file", BATCH_SIZE, INPUT_SHAPE)
+#test_generator = DataGenerator(
+#    DATASET_PATH + "/" + VALIDATION_DIR, val_list, perceptual_model, "celeba64_debug/texture_val","file", BATCH_SIZE, INPUT_SHAPE)
 # test_generator = DataGenerator(
 #     dataset_path + "/" + validation_dir, val_list, perceptual_model, texture_model, len(val_list), img_input_shape)
 

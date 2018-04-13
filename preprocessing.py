@@ -1,9 +1,11 @@
 import PIL
 import os
-from utils import mirror_padding
+from utils import extract_patches
 import numpy as np
 from keras.datasets import cifar10
-
+from keras.applications import VGG19
+from keras.models import Model
+from ModelConfig import *
 
 def split_indices(nb_indices,train_ratio,val_ratio, seed = 8):
     seed = np.random.seed(seed)
@@ -84,7 +86,64 @@ def load_folder(src,dst,img_size,nb_images,train_ratio = 0.7, val_ratio = 0.2):
     test_list = [img_list[i] for i in test_index]
 
     store_data(src,dst,img_size,train_list,val_list,test_list)
+
+def preprocess_patch(src,dst):
+    if not os.path.exists(dst):
+        os.mkdir(dst)
     
+    src_list = os.listdir(src)
+
+    # VGG for the perceptual loss
+    base_model = VGG19(weights="imagenet", include_top=False,
+                    input_shape=INPUT_SHAPE)
+
+    texture_model = Model(inputs=base_model.input,
+                            outputs=[base_model.get_layer("block2_pool").output],
+                            name="VGG_texture")
+    
+    for idx in range(len(src_list)):
+            img = PIL.Image.open(src + "/" + src_list[idx])
+            img = img.resize(INPUT_SHAPE[0:2], PIL.Image.ANTIALIAS)
+            img = np.asarray(img)
+            img = img / 255
+            X = np.reshape(img,(1,*img.shape))
+
+            patch_size = TEXTURE_PARAMS["patch_size"]
+            patches_per_img = (INPUT_SHAPE[0] // patch_size[0]) * (INPUT_SHAPE[1] // patch_size[1])
+            # On génère les patchs
+            # print("[Generator] Shape of X: " + str(X.shape))
+            # print("[Generator] Shape of F2: " + str(F2.shape))
+            # Renvoie un tenseur de taille (batch_size*#patches, 8, 8, 3)
+            patches = extract_patches(X, (*patch_size, 3))
+            # print("[Generator] Patches array shape : " + str(patches.shape))
+            # On padde : (batch_size*#patches, 64, 64, 3)
+            pad_size_h = (INPUT_SHAPE[0] - patch_size[0]) // 2
+            pad_size_v = (INPUT_SHAPE[1] - patch_size[1]) // 2
+            padded_patches = np.pad(patches, [[0, 0], [pad_size_h, pad_size_h], [pad_size_v, pad_size_v], [0, 0]], "constant")
+            # print("[Generator] Padded patches array shape : " + str(padded_patches.shape))
+            # On envoie tout ça comme un gros batch dans le VGG
+            # On récupère une liste de 2048 éléments de taille (16, 16, 128)
+            textures = texture_model.predict(padded_patches)
+            # print("[Generator] Textures array shape : " + str(textures[0].shape))
+            # print("[Generator] Texture list length : " + str(len(textures)))
+            # On fait des arrays de taille (64, 16, 16, 128), chaque array correspondant aux textures d'une
+            # image
+            textures_grouped = []
+            for i in range(0, len(textures), patches_per_img):
+                textures_grouped.append(np.stack(textures[i:i+patches_per_img], 0))
+            # print("[Generator] Grouped textures array shape : " + str(textures_grouped[0].shape))
+            # print("[Generator] Grouped textures list length : " + str(len(textures_grouped)))
+            # Et on stacke pour avoir un tenseur (32, 64, 16, 16, 128) qui se lit comme suit :
+            #   Pour chaque image
+            #       Pour chaque patch
+            #           Sortie du VGG de taille (16, 16, 128)
+            textures_stacked = np.stack(textures_grouped, axis=0)
+            # print("[Generator] Final texture shape : " + str(textures_stacked.shape))
+
+            src_name = dst + '/' + os.path.basename(src_list[idx]).split(".")[0] + "_patches.npy"
+            np.save(src_name,textures_stacked[0,:,:,:,:])
+
 #load_cifar10("cifar10", 2000)
 #load_folder("test", "test2",(64,64),1)
-store_data('test','test2',(64,64),['1.jpg','2.png'],[],[])
+#store_data('test','test2',(64,64),['1.jpg','2.png'],[],[])
+preprocess_patch("celeba64_debug/val","texture_val")
