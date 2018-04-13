@@ -1,8 +1,9 @@
 from itertools import count
 
-from keras.layers import Input, Conv2D, Add, LeakyReLU, Lambda, Concatenate
-from keras.models import Model
 from keras.applications import VGG19
+from keras.layers import Input, Conv2D, Add, LeakyReLU, Lambda
+from keras.models import Model
+
 from CustomLayers import ClippingLayer, RoundingLayer, PatchingLayer, DePatchingLayer
 from ModelConfig import *
 from utils import subpixel
@@ -50,7 +51,7 @@ def decoder(encoded):
     d = Conv2D(filters=512, kernel_size=(3, 3), padding='same', strides=(1, 1), name="d_conv_" + str(next(conv_index)))(
         encoded)
     d = Lambda(function=subpixel, name="d_lambda_" +
-               str(next(lambda_index)))(d)
+                                       str(next(lambda_index)))(d)
 
     d_skip_connection = d
 
@@ -67,12 +68,12 @@ def decoder(encoded):
     d = Conv2D(filters=256, kernel_size=(3, 3), padding='same', strides=(1, 1), name="d_conv_" + str(next(conv_index)))(
         d)
     d = Lambda(function=subpixel, name="d_lambda_" +
-               str(next(lambda_index)))(d)
+                                       str(next(lambda_index)))(d)
 
     d = Conv2D(filters=12, kernel_size=(3, 3), padding='same', strides=(1, 1), name="d_conv_" + str(next(conv_index)))(
         d)
     d = Lambda(function=subpixel, name="d_lambda_" +
-               str(next(lambda_index)))(d)
+                                       str(next(lambda_index)))(d)
 
     d = ClippingLayer(0, 1)(d)
 
@@ -95,8 +96,7 @@ def vgg_features():
     return perceptual_model
 
 
-def build_model(perceptual_model):
-
+def build_model(perceptual_model, texture_model):
     # Define input layer
     e_input = Input(shape=e_input_shape, name="e_input_1")
     # Chain models
@@ -108,12 +108,13 @@ def build_model(perceptual_model):
     # Add lambda layers to rename outputs, otherwise Keras will give the same name...
     block_2 = Lambda(lambda x: x, name="VGG_block_2")(featured[0])
     block_5 = Lambda(lambda x: x, name="VGG_block_5")(featured[1])
-    
+
     # Couche qui génère une liste de patchs
     patching_2 = PatchingLayer()(decoded)
     print(patching_2.shape)
-    textured = perceptual_model(patching_2)[0]
-    print("vgg ",textured.shape) 
+    textured = texture_model(patching_2)
+    # textured = texture_model(patching_2)
+    print("vgg ", textured.shape)
     reshaped = DePatchingLayer()(textured)
 
     autoencodeur = Model(

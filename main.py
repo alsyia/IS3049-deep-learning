@@ -40,7 +40,7 @@ base_model = VGG19(weights="imagenet", include_top=False,
 perceptual_model = Model(inputs=base_model.input,
                          outputs=[base_model.get_layer("block2_pool").output,
                                   base_model.get_layer("block5_pool").output],
-                         name="VGG")
+                         name="VGG_perceptual")
 # We don't want to train VGG
 perceptual_model.trainable = False
 for layer in perceptual_model.layers:
@@ -52,7 +52,7 @@ print("Predicted")
 
 texture_model = Model(inputs=base_model.input,
                          outputs=[base_model.get_layer("block2_pool").output],
-                         name="VGG")
+                         name="VGG_texture")
 # We don't want to train VGG
 texture_model.trainable = False
 for layer in texture_model.layers:
@@ -63,13 +63,15 @@ texture_model.predict(img)
 print("Predicted")
 
 
-autoencoder, _ = build_model(perceptual_model)
+autoencoder, _ = build_model(perceptual_model, texture_model)
 
 # create data generator
 train_generator = DataGenerator(
     dataset_path + "/" + train_dir, train_list, perceptual_model, texture_model, 2, img_input_shape)
 test_generator = DataGenerator(
-    dataset_path + "/" + validation_dir, val_list, perceptual_model, texture_model, len(val_list), img_input_shape)
+    dataset_path + "/" + validation_dir, val_list, perceptual_model, texture_model, 2, img_input_shape)
+# test_generator = DataGenerator(
+#     dataset_path + "/" + validation_dir, val_list, perceptual_model, texture_model, len(val_list), img_input_shape)
 
 # Plot model graph
 # plot_model(autoencoder, to_file='autoencoder.png')
