@@ -80,22 +80,6 @@ def decoder(encoded):
     return d
 
 
-def vgg_features():
-    base_model = VGG19(weights="imagenet", include_top=False,
-                       input_shape=INPUT_SHAPE)
-    perceptual_model = Model(inputs=base_model.input,
-                             outputs=[base_model.get_layer("block2_pool").output,
-                                      base_model.get_layer("block5_pool").output],
-                             name="VGG")
-
-    # We don't want to train VGG
-    perceptual_model.trainable = False
-    for layer in perceptual_model.layers:
-        layer.trainable = False
-
-    return perceptual_model
-
-
 def build_model(perceptual_model, texture_model):
     # Define input layer
     e_input = Input(shape=E_INPUT_SHAPE, name="e_input_1")

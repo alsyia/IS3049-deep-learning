@@ -142,5 +142,4 @@ class DePatchingLayer(Layer):
         return depatch
 
     def compute_output_shape(self, input_shape):
-        # TO DO : le nombre de patch est toujours hard codé
         return (input_shape[0] // self.patches_per_img, self.patches_per_img, input_shape[1], input_shape[2], input_shape[3])

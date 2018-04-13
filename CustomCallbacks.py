@@ -28,7 +28,6 @@ class HuffmanCallback(Callback):
         self.generator = generator
 
     def on_epoch_begin(self, epoch, logs={}):
-        # codes = self.model.layers[1].predict(self.generator[0][0])[0]
         codes = self.model.predict(self.generator[0][0])[0]
         values, counts = np.unique(codes, return_counts=True)
         values = values[np.argsort(counts)]
