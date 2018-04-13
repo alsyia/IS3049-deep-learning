@@ -25,7 +25,7 @@
 \setcounter{page}{4321}
 \begin{document}
 
-\title{Image compression with autoencoders using semantic loss function}
+\title{Compression d'image avec perte à base d'autoencodeurs}
 
 \author{Romain Meynard\\
 {\tt\small romain.meynard@student.ecp.fr}
@@ -43,23 +43,24 @@ CentraleSupélec\\
 %\thispagestyle{empty}
 
 \begin{abstract}
-Lossy image compression is the task of finding a representation of an image that keeps most of its content while significantly reducing its storage size. This task allows storage and transfer of images for a minimum cost and is commonly achieved using algorithms such as JPEG 2000. Recent studies in image compression using a deep learning approach make use of either autoencoders with pixelwise loss or Generative Adversarial Networks (GANs) using semantic and texture losses. The aim of this study is to apply semantic and texture losses to autoencoders. 
+La compression d'image est un sujet de recherche d'actualité dans la mesure où les résolutions d'images augmentent et les débits d'échange également. L'approche de compression avec perte consiste à s'autoriser à ne garder qu'une partie de l'information contenue dans l'image en contrepartie d'un taux de compression bien supérieur. Des algorithmes tels que le JPEG mettent déjà en œuvre cette approche avec des taux particulièrement intéressants. Cependant de récents travaux mettent en lumière les apports potentiels de l'apprentissage profonds à la compression d'images. En effet la compression d'images comme un problème d'optimisation d'un réseau profond permet de tenir compte de nouveaux aspects tels que le contenu sémantique de l'image. Notre travail vise à étudier l'effet de différentes fonctions de coût sur la performance de la compression de l'autoencodeur.
+
 \end{abstract}
 
 \section{Introduction}
 
-\section{State of the art}
-We should write a few lines about \cite{theis_lossy_2017} (which model we used), \cite{sajjadi_enhancenet:_2016} (gave us ideas for the loss functions) and also about \cite{gatys_texture_2015} in which texture loss was first introduced.
+\section{Etat de l'art}
+L'état de l'art de la compression d'image à base de réseaux profonds reposent principalement sur des structures d'autoencodeurs et de réseaux adversariaux génératifs (GANs). En effet, la structure de ces architectures en deux blocs opposés se prête particulièrement bien à la compression et décompression de l'image. Le premier bloc aura pour charge de produire une version compressée de l'image que le deuxième bloc devra décompresser. En particulier Theis et al. ont développé un autoencodeur qui produit des résultats sur la compression comparable au JPEG 2000. Le problème de la compression d'image est également très proche du problème de super résolution qui consiste à augmenter la résolution d'une image. Dans ce domaine Sajjadi et al. ont produit EnhanceNet en (année), il s'agit d'un GAN qui génère une version agrandie quatre fois d'une image initiale. Ce modèle repose en particulier sur la génération automatique de texture par le réseau. Notre intuition est que certaines approches de résolution du problème de super résolution peuvent être transposées à la compression d'image en particulier la génération de texture.
 
-\section{Model}
+\section{Modèle}
 
 Explain our archictecture and all the small tricks we used (custom derivatives, all this stuff). 
 
-\section{Experiments}
+\section{Expériences}
 
 Which dataset did we use, why and how ?
 
-\section{Results}
+\section{Résultats}
 
 Probably a bunch of nice images showing how great our autoencoder performs.
 
