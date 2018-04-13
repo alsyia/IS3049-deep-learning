@@ -113,7 +113,6 @@ def build_model(perceptual_model, texture_model):
     patching_2 = PatchingLayer()(decoded)
     print(patching_2.shape)
     textured = texture_model(patching_2)
-    # textured = texture_model(patching_2)
     print("vgg ", textured.shape)
     reshaped = DePatchingLayer()(textured)
 

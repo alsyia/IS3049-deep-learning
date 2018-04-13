@@ -11,7 +11,7 @@ from CustomCallbacks import TensorBoardImage, EncoderCheckpoint, HuffmanCallback
 from CustomLoss import loss, code, perceptual_2, perceptual_5,texture
 from Generator import DataGenerator
 from Model import build_model
-from ModelConfig import img_input_shape, dataset_path, train_dir, validation_dir, test_dir
+from ModelConfig import img_input_shape, dataset_path, train_dir, validation_dir, test_dir, batch_size
 from utils import generate_experiment
 from predict import predict_from_ae
 
@@ -67,9 +67,9 @@ autoencoder, _ = build_model(perceptual_model, texture_model)
 
 # create data generator
 train_generator = DataGenerator(
-    dataset_path + "/" + train_dir, train_list, perceptual_model, texture_model, 2, img_input_shape)
+    dataset_path + "/" + train_dir, train_list, perceptual_model, texture_model, batch_size, img_input_shape)
 test_generator = DataGenerator(
-    dataset_path + "/" + validation_dir, val_list, perceptual_model, texture_model, 2, img_input_shape)
+    dataset_path + "/" + validation_dir, val_list, perceptual_model, texture_model, batch_size, img_input_shape)
 # test_generator = DataGenerator(
 #     dataset_path + "/" + validation_dir, val_list, perceptual_model, texture_model, len(val_list), img_input_shape)
 

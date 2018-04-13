@@ -1,8 +1,10 @@
 # Dataset
-dataset_path = "./celeba64_debug100"
+dataset_path = "./big_faces"
 test_dir = "test"
 train_dir = "train"
 validation_dir = "val"
+
+batch_size = 2
 
 # Encoder
 a = 0.3  # Leaky ReLu alpha value
@@ -21,6 +23,12 @@ d_res_block_conv_params = {  # Parameters of residual blocks
     "kernel_size": (3, 3),
     "padding": "same",
 }
+
+# Texture loss
+texture_params = {
+    "patch_size": (8, 8)
+}
+
 
 # Loss
 loss_params = {

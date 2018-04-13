@@ -73,14 +73,18 @@ class DataGenerator(keras.utils.Sequence):
         self.vgg_texture._make_predict_function()
         F2, F5 = self.vgg_perceptual.predict(X)
 
+        patch_size = texture_params["patch_size"]
+        patches_per_img = (img_input_shape[0]//patch_size[0])*(img_input_shape[1]//patch_size[1])
         # On génère les patchs
         # print("[Generator] Shape of X: " + str(X.shape))
         # print("[Generator] Shape of F2: " + str(F2.shape))
         # Renvoie un tenseur de taille (batch_size*#patches, 8, 8, 3)
-        patches = extract_patches(X, (8, 8, 3))
+        patches = extract_patches(X, (*patch_size, 3))
         # print("[Generator] Patches array shape : " + str(patches.shape))
         # On padde : (batch_size*#patches, 64, 64, 3)
-        padded_patches = np.pad(patches, [[0, 0], [28, 28], [28, 28], [0, 0]], "constant")
+        pad_size_h = (img_input_shape[0] - patch_size[0])//2
+        pad_size_v = (img_input_shape[1] - patch_size[1])//2
+        padded_patches = np.pad(patches, [[0, 0], [pad_size_h, pad_size_h], [pad_size_v, pad_size_v], [0, 0]], "constant")
         # print("[Generator] Padded patches array shape : " + str(padded_patches.shape))
         # On envoie tout ça comme un gros batch dans le VGG
         # On récupère une liste de 2048 éléments de taille (16, 16, 128)
@@ -90,8 +94,8 @@ class DataGenerator(keras.utils.Sequence):
         # On fait des arrays de taille (64, 16, 16, 128), chaque array correspondant aux textures d'une
         # image
         textures_grouped = []
-        for i in range(0, len(textures), 64):
-            textures_grouped.append(np.stack(textures[i:i+64], 0))
+        for i in range(0, len(textures), patches_per_img):
+            textures_grouped.append(np.stack(textures[i:i+patches_per_img], 0))
         # print("[Generator] Grouped textures array shape : " + str(textures_grouped[0].shape))
         # print("[Generator] Grouped textures list length : " + str(len(textures_grouped)))
         # Et on stacke pour avoir un tenseur (32, 64, 16, 16, 128) qui se lit comme suit :
