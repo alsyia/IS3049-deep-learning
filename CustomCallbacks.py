@@ -172,11 +172,7 @@ class TensorBoardImage(Callback):
 
 # function for learning scheduler
 def schedule(epoch):
-    if epoch < 30:
+    if epoch < 50:
         return 1e-4
-    elif epoch < 50:
-        return 5e-5
-    elif epoch < 80
-        return 1e-5
     else:
-        return 5e-6
+        return 5e-5

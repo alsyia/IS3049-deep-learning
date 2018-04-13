@@ -11,7 +11,7 @@ from keras.applications import VGG19
 from keras.utils import plot_model as keras_utils_plot_model
 
 from CustomCallbacks import TensorBoardImage, EncoderCheckpoint, HuffmanCallback, schedule
-from CustomLoss import loss, code, perceptual_2, perceptual_5
+from CustomLoss import loss, code, perceptual_2, perceptual_5, entropy
 from Generator import DataGenerator
 from Model import build_model
 from ModelConfig import img_input_shape, dataset_path, train_dir, validation_dir, test_dir
@@ -121,7 +121,7 @@ if __name__ == '__main__':
     # Compile model with adam optimizer
     optimizer = Adam(lr=1e-4, clipnorm=1)
     autoencoder.compile(optimizer=optimizer, loss={"clipping_layer_1": loss,
-                                                "rounding_layer_1": code,
+                                                "rounding_layer_1": entropy,
                                                 "VGG_block_2": perceptual_2,
                                                 "VGG_block_5": perceptual_5})
 
