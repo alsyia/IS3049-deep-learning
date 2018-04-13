@@ -64,11 +64,11 @@ def generate_patch(img, patch_size, strides):
     
     return patchs
 
-def extract_patches(images, patch_size, stride):
+def extract_patches(images, patch_size):
     images_blocks = [view_as_blocks(img, patch_size) for img in images]
     images_blocks = [np.reshape(blocks, (-1, *patch_size)) for blocks in images_blocks]
-    print("[utils] Size of blocks " + str(images_blocks[0].shape) )
-    print("[utils] Length " + str(len(images_blocks)) )
+    # print("[utils] Size of blocks " + str(images_blocks[0].shape) )
+    # print("[utils] Length " + str(len(images_blocks)) )
 
     # Should return a big tensor of shape (batch_size*number_of_patches, patch_dim_1, patch_dim_2, 3)
     return np.concatenate(images_blocks, axis=0)

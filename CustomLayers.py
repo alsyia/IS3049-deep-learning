@@ -1,5 +1,4 @@
 import keras.backend as K
-import numpy as np
 import tensorflow as tf
 from keras.layers import Layer
 
@@ -10,7 +9,6 @@ def _grad_identity(op, grad):
 
 
 def clipping(X, min_val, max_val):
-
     g = K.get_session().graph
     with g.gradient_override_map({'clip_by_value': "GradientClipping"}):
         y = tf.clip_by_value(X, min_val, max_val)
@@ -24,7 +22,6 @@ def _grad__identity(op, grad):
 
 
 def rounding(X):
-
     g = K.get_session().graph
     with g.gradient_override_map({'Round': "GradientRounding"}):
         y = tf.round(X)
@@ -71,8 +68,9 @@ class RoundingLayer(Layer):
     def compute_output_shape(self, input_shape):
         return input_shape
 
+
 # not used
-#class MaskingLayer(Layer):
+# class MaskingLayer(Layer):
 #    def __init__(self, **kwargs):
 #        super(MaskingLayer, self).__init__(**kwargs)
 #        self.supports_masking = False
@@ -107,21 +105,24 @@ class PatchingLayer(Layer):
         super(PatchingLayer, self).build(input_shape)
 
     def call(self, x, mask=None):
-        permute = tf.transpose(x, perm = [3,1,2,0])
+        permute = tf.transpose(x, perm=[3, 1, 2, 0])
         patches = tf.extract_image_patches(permute,
-                                          ksizes=(1, *self.patch_size, 1),
-                                          strides=(1, *self.strides, 1),
-                                          rates=(1, 1, 1, 1), padding='SAME')
-        permute_2 = tf.transpose(patches, perm = [3,1,2,0])
-        
-        pad = [(self.output_size[0] - self.patch_size[0])//2,
-               (self.output_size[1] - self.patch_size[1])//2]
+                                           ksizes=(1, *self.patch_size, 1),
+                                           strides=(1, *self.strides, 1),
+                                           rates=(1, 1, 1, 1), padding='SAME')
+        permute_2 = tf.transpose(patches, perm=[3, 1, 2, 0])
+
+        pad = [(self.output_size[0] - self.patch_size[0]) // 2,
+               (self.output_size[1] - self.patch_size[1]) // 2]
+        print("[Patching] Output before padding shape: " + str(permute_2.shape))
         padded = tf.pad(permute_2, [[0, 0], pad, pad, [0, 0]])
+        print("[Patching] Output after padding shape: " + str(padded.shape))
         return padded
 
     def compute_output_shape(self, input_shape):
         # TO DO : le nombre de patch est toujours hard codé
-        return (2*64, *self.output_size, input_shape[3])
+        return (2 * 64, *self.output_size, input_shape[3])
+
 
 class DePatchingLayer(Layer):
     def __init__(self, **kwargs):
@@ -136,9 +137,9 @@ class DePatchingLayer(Layer):
         super(DePatchingLayer, self).build(input_shape)
 
     def call(self, x, mask=None):
-        depatch = tf.reshape(x,(tf.shape(x)[0]//64,64,tf.shape(x)[1],tf.shape(x)[2],tf.shape(x)[3]))
+        depatch = tf.reshape(x, (tf.shape(x)[0] // 64, 64, tf.shape(x)[1], tf.shape(x)[2], tf.shape(x)[3]))
         return depatch
 
     def compute_output_shape(self, input_shape):
         # TO DO : le nombre de patch est toujours hard codé
-        return (input_shape[0]//64,64, input_shape[1], input_shape[2], input_shape[3])
+        return (input_shape[0] // 64, 64, input_shape[1], input_shape[2], input_shape[3])

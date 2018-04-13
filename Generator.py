@@ -74,31 +74,31 @@ class DataGenerator(keras.utils.Sequence):
         F2, F5 = self.vgg_perceptual.predict(X)
 
         # On génère les patchs
-        print("[Generator] Shape of X: " + str(X.shape))
-        print("[Generator] Shape of F2: " + str(F2.shape))
+        # print("[Generator] Shape of X: " + str(X.shape))
+        # print("[Generator] Shape of F2: " + str(F2.shape))
         # Renvoie un tenseur de taille (batch_size*#patches, 8, 8, 3)
-        patches = extract_patches(X, (8, 8, 3), (8,8))
-        print("[Generator] Patches array shape : " + str(patches.shape))
+        patches = extract_patches(X, (8, 8, 3))
+        # print("[Generator] Patches array shape : " + str(patches.shape))
         # On padde : (batch_size*#patches, 64, 64, 3)
         padded_patches = np.pad(patches, [[0, 0], [28, 28], [28, 28], [0, 0]], "constant")
-        print("[Generator] Padded patches array shape : " + str(padded_patches.shape))
+        # print("[Generator] Padded patches array shape : " + str(padded_patches.shape))
         # On envoie tout ça comme un gros batch dans le VGG
         # On récupère une liste de 2048 éléments de taille (16, 16, 128)
         textures = self.vgg_texture.predict(padded_patches)
-        print("[Generator] Textures array shape : " + str(textures[0].shape))
-        print("[Generator] Texture list length : " + str(len(textures)))
+        # print("[Generator] Textures array shape : " + str(textures[0].shape))
+        # print("[Generator] Texture list length : " + str(len(textures)))
         # On fait des arrays de taille (64, 16, 16, 128), chaque array correspondant aux textures d'une
         # image
         textures_grouped = []
         for i in range(0, len(textures), 64):
             textures_grouped.append(np.stack(textures[i:i+64], 0))
-        print("[Generator] Grouped textures array shape : " + str(textures_grouped[0].shape))
-        print("[Generator] Grouped textures list length : " + str(len(textures_grouped)))
+        # print("[Generator] Grouped textures array shape : " + str(textures_grouped[0].shape))
+        # print("[Generator] Grouped textures list length : " + str(len(textures_grouped)))
         # Et on stacke pour avoir un tenseur (32, 64, 16, 16, 128) qui se lit comme suit :
         #   Pour chaque image
         #       Pour chaque patch
         #           Sortie du VGG de taille (16, 16, 128)
         textures_stacked = np.stack(textures_grouped, axis=0)
-        print("[Generator] Final texture shape : " + str(textures_stacked.shape))
+        # print("[Generator] Final texture shape : " + str(textures_stacked.shape))
 
         return X, B, F2, F5, textures_stacked
