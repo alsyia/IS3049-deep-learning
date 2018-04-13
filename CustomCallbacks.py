@@ -123,15 +123,15 @@ def make_image(tensor):
 
 def image_to_input(path):
     img = PIL.Image.open(path)
-    img_img = img.resize(img_input_shape[0:2], PIL.Image.ANTIALIAS)
+    img_img = img.resize(INPUT_SHAPE[0:2], PIL.Image.ANTIALIAS)
     img = np.asarray(img_img) / 255
-    img = img.reshape(1, *img_input_shape)
+    img = img.reshape(1, *INPUT_SHAPE)
     return img
 
 
 def output_to_tf_img(output):
     output = np.uint8(output * 255)
-    output = output.reshape(*img_input_shape)
+    output = output.reshape(*INPUT_SHAPE)
     output_img = make_image(output)
 
     return output_img
@@ -150,7 +150,7 @@ class TensorBoardImage(Callback):
     def on_epoch_end(self, epoch, logs=None):
         summaries = []
         for idx, img_name in enumerate(self.test_list[:10]):
-            path = dataset_path + "/" + test_dir + "/" + img_name
+            path = DATASET_PATH + "/" + TEST_DIR + "/" + img_name
 
             input = image_to_input(path)
             output = self.model.predict(input)[1]

@@ -5,7 +5,7 @@ import numpy as np
 
 from Generator import DataGenerator
 from Model import build_model, Model
-from ModelConfig import img_input_shape
+from ModelConfig import INPUT_SHAPE
 from keras.applications import VGG19
 
 def predict_from_ae(input_path,autoencoder, limit=10):
@@ -21,14 +21,14 @@ def predict_from_ae(input_path,autoencoder, limit=10):
         
     for img_idx in range(min(limit,len(img_list))):
         img = PIL.Image.open(img_list[img_idx])
-        img_img = img.resize(img_input_shape[0:2], PIL.Image.ANTIALIAS)
+        img_img = img.resize(INPUT_SHAPE[0:2], PIL.Image.ANTIALIAS)
         img = np.asarray(img_img) / 255
-        img = img.reshape(1, *img_input_shape)
+        img = img.reshape(1, *INPUT_SHAPE)
         reconstruction = autoencoder.predict(img)
         reconstruction = reconstruction[1]*255
         reconstruction = np.clip(reconstruction, 0, 255)
         reconstruction = np.uint8(reconstruction)
-        reconstruction = reconstruction.reshape(*img_input_shape)
+        reconstruction = reconstruction.reshape(*INPUT_SHAPE)
         reconstruction_img = PIL.Image.fromarray(reconstruction)
 
         filename = os.path.basename(img_list[img_idx]).split('.')[0]
@@ -38,7 +38,7 @@ def predict_from_ae(input_path,autoencoder, limit=10):
 def predict_from_weights(input_path,weight_path,limit = 10):
     # VGG for the perceptual loss
     base_model = VGG19(weights="imagenet", include_top=False,
-                    input_shape=img_input_shape)
+                       input_shape=INPUT_SHAPE)
 
     perceptual_model = Model(inputs=base_model.input,
                             outputs=[base_model.get_layer("block2_pool").output,

@@ -6,20 +6,20 @@ from ModelConfig import *
 
 
 def loss(x_true, x_pred):
-    loss = loss_params["mse"] * mae(x_true, x_pred)
+    loss = LOSS_PARAMS["mse"] * mae(x_true, x_pred)
     return loss
 
 
 def code(x_true,x_pred):
-    return loss_params["bit"] * tf.nn.moments(x_pred,[1,2,3])[1]
+    return LOSS_PARAMS["bit"] * tf.nn.moments(x_pred, [1, 2, 3])[1]
 
 
 def perceptual_2(x_true, x_pred):
-    return loss_params["perceptual_2"]*mse(x_true, x_pred)
+    return LOSS_PARAMS["perceptual_2"] * mse(x_true, x_pred)
 
 
 def perceptual_5(x_true, x_pred):
-    return loss_params["perceptual_5"]*mse(x_true, x_pred)
+    return LOSS_PARAMS["perceptual_5"] * mse(x_true, x_pred)
 
 
 def texture(x_true, x_pred):
@@ -41,4 +41,4 @@ def texture(x_true, x_pred):
     gram_true = tf.matmul(transpose_true,reshape_true)
     gram_pred = tf.matmul(transpose_pred,reshape_pred)
 
-    return loss_params["texture"]*mse(gram_true, gram_pred)
+    return LOSS_PARAMS["texture"] * mse(gram_true, gram_pred)

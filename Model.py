@@ -17,20 +17,20 @@ def encoder(e_input):
 
     e = Conv2D(filters=64, kernel_size=(5, 5), padding='same', strides=(2, 2),
                name="e_conv_" + str(str(next(conv_index))))(e_input)
-    e = LeakyReLU(alpha=a, name="e_leaky_" + str(next(leaky_index)))(e)
+    e = LeakyReLU(alpha=ALPHA, name="e_leaky_" + str(next(leaky_index)))(e)
     e = Conv2D(filters=128, kernel_size=(5, 5), padding='same', strides=(2, 2), name="e_conv_" + str(next(conv_index)))(
         e)
-    e = LeakyReLU(alpha=a, name="e_leaky_" + str(next(leaky_index)))(e)
+    e = LeakyReLU(alpha=ALPHA, name="e_leaky_" + str(next(leaky_index)))(e)
 
     e_skip_connection = e
 
     # Create three residual blocks
     for i in range(3):
         e = Conv2D(name="e_conv_" + str(next(conv_index)),
-                   **e_res_block_conv_params)(e)
-        e = LeakyReLU(alpha=a, name="e_leaky_" + str(next(leaky_index)))(e)
+                   **E_RES_BLOCKS_CONV_PARAMS)(e)
+        e = LeakyReLU(alpha=ALPHA, name="e_leaky_" + str(next(leaky_index)))(e)
         e = Conv2D(name="e_conv_" + str(next(conv_index)),
-                   **e_res_block_conv_params)(e)
+                   **E_RES_BLOCKS_CONV_PARAMS)(e)
         e = Add(name="e_add_" + str(next(add_index)))([e, e_skip_connection])
         e_skip_connection = e
 
@@ -58,10 +58,10 @@ def decoder(encoded):
     # Add three residual blocks
     for j in range(3):
         d = Conv2D(name="d_conv_" + str(next(conv_index)),
-                   **d_res_block_conv_params)(d)
-        d = LeakyReLU(alpha=a, name="d_leaky_" + str(next(leaky_index)))(d)
+                   **D_RES_BLOCKS_CONV_PARAMS)(d)
+        d = LeakyReLU(alpha=ALPHA, name="d_leaky_" + str(next(leaky_index)))(d)
         d = Conv2D(name="d_conv_" + str(next(conv_index)),
-                   **d_res_block_conv_params)(d)
+                   **D_RES_BLOCKS_CONV_PARAMS)(d)
         d = Add(name="d_add_" + str(next(add_index)))([d, d_skip_connection])
         d_skip_connection = d
 
@@ -82,7 +82,7 @@ def decoder(encoded):
 
 def vgg_features():
     base_model = VGG19(weights="imagenet", include_top=False,
-                       input_shape=img_input_shape)
+                       input_shape=INPUT_SHAPE)
     perceptual_model = Model(inputs=base_model.input,
                              outputs=[base_model.get_layer("block2_pool").output,
                                       base_model.get_layer("block5_pool").output],
@@ -98,7 +98,7 @@ def vgg_features():
 
 def build_model(perceptual_model, texture_model):
     # Define input layer
-    e_input = Input(shape=e_input_shape, name="e_input_1")
+    e_input = Input(shape=E_INPUT_SHAPE, name="e_input_1")
     # Chain models
     encoded = encoder(e_input)
     decoded = decoder(encoded)

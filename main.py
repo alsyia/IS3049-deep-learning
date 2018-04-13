@@ -11,7 +11,7 @@ from CustomCallbacks import TensorBoardImage, EncoderCheckpoint, HuffmanCallback
 from CustomLoss import loss, code, perceptual_2, perceptual_5,texture
 from Generator import DataGenerator
 from Model import build_model
-from ModelConfig import img_input_shape, dataset_path, train_dir, validation_dir, test_dir, batch_size
+from ModelConfig import INPUT_SHAPE, DATASET_PATH, TRAIN_DIR, VALIDATION_DIR, TEST_DIR, BATCH_SIZE
 from utils import generate_experiment
 from predict import predict_from_ae
 
@@ -19,23 +19,23 @@ from predict import predict_from_ae
 # sess = tf_debug.TensorBoardDebugWrapperSession(sess, "PC-Wenceslas:6004")
 # K.set_session(sess)
 
-train_list = os.listdir(dataset_path+"/"+train_dir)
-val_list = os.listdir(dataset_path+"/"+validation_dir)
-test_list = os.listdir(dataset_path+"/"+test_dir)
+train_list = os.listdir(DATASET_PATH + "/" + TRAIN_DIR)
+val_list = os.listdir(DATASET_PATH + "/" + VALIDATION_DIR)
+test_list = os.listdir(DATASET_PATH + "/" + TEST_DIR)
 
 seed = np.random.seed(seed = 8)
 
-img = PIL.Image.open(dataset_path + "/" + validation_dir + "/" + val_list[0])
-img_img = img.resize(img_input_shape[0:2], PIL.Image.ANTIALIAS)
+img = PIL.Image.open(DATASET_PATH + "/" + VALIDATION_DIR + "/" + val_list[0])
+img_img = img.resize(INPUT_SHAPE[0:2], PIL.Image.ANTIALIAS)
 img = np.asarray(img_img) / 255
-img = img.reshape(1, *img_input_shape)
+img = img.reshape(1, *INPUT_SHAPE)
 
 exp_path = generate_experiment()
 
 
 # VGG for the perceptual loss
 base_model = VGG19(weights="imagenet", include_top=False,
-                   input_shape=img_input_shape)
+                   input_shape=INPUT_SHAPE)
 
 perceptual_model = Model(inputs=base_model.input,
                          outputs=[base_model.get_layer("block2_pool").output,
@@ -67,9 +67,9 @@ autoencoder, _ = build_model(perceptual_model, texture_model)
 
 # create data generator
 train_generator = DataGenerator(
-    dataset_path + "/" + train_dir, train_list, perceptual_model, texture_model, batch_size, img_input_shape)
+    DATASET_PATH + "/" + TRAIN_DIR, train_list, perceptual_model, texture_model, BATCH_SIZE, INPUT_SHAPE)
 test_generator = DataGenerator(
-    dataset_path + "/" + validation_dir, val_list, perceptual_model, texture_model, batch_size, img_input_shape)
+    DATASET_PATH + "/" + VALIDATION_DIR, val_list, perceptual_model, texture_model, BATCH_SIZE, INPUT_SHAPE)
 # test_generator = DataGenerator(
 #     dataset_path + "/" + validation_dir, val_list, perceptual_model, texture_model, len(val_list), img_input_shape)
 
@@ -125,4 +125,4 @@ history = autoencoder.fit_generator(train_generator,
 with open(exp_path + '/history', 'wb') as file_pi:
     pickle.dump(history.history, file_pi)
 
-predict_from_ae(dataset_path + "/" + validation_dir, autoencoder)
+predict_from_ae(DATASET_PATH + "/" + VALIDATION_DIR, autoencoder)

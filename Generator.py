@@ -60,7 +60,7 @@ class DataGenerator(keras.utils.Sequence):
         for i in range(len(img_temp)):
             # Store sample
             img = PIL.Image.open(self.folder + "/" + img_temp[i])
-            img = img.resize(img_input_shape[0:2], PIL.Image.ANTIALIAS)
+            img = img.resize(INPUT_SHAPE[0:2], PIL.Image.ANTIALIAS)
             img = np.asarray(img)
             X[i, ] = img / 255
 
@@ -73,8 +73,8 @@ class DataGenerator(keras.utils.Sequence):
         self.vgg_texture._make_predict_function()
         F2, F5 = self.vgg_perceptual.predict(X)
 
-        patch_size = texture_params["patch_size"]
-        patches_per_img = (img_input_shape[0]//patch_size[0])*(img_input_shape[1]//patch_size[1])
+        patch_size = TEXTURE_PARAMS["patch_size"]
+        patches_per_img = (INPUT_SHAPE[0] // patch_size[0]) * (INPUT_SHAPE[1] // patch_size[1])
         # On génère les patchs
         # print("[Generator] Shape of X: " + str(X.shape))
         # print("[Generator] Shape of F2: " + str(F2.shape))
@@ -82,8 +82,8 @@ class DataGenerator(keras.utils.Sequence):
         patches = extract_patches(X, (*patch_size, 3))
         # print("[Generator] Patches array shape : " + str(patches.shape))
         # On padde : (batch_size*#patches, 64, 64, 3)
-        pad_size_h = (img_input_shape[0] - patch_size[0])//2
-        pad_size_v = (img_input_shape[1] - patch_size[1])//2
+        pad_size_h = (INPUT_SHAPE[0] - patch_size[0]) // 2
+        pad_size_v = (INPUT_SHAPE[1] - patch_size[1]) // 2
         padded_patches = np.pad(patches, [[0, 0], [pad_size_h, pad_size_h], [pad_size_v, pad_size_v], [0, 0]], "constant")
         # print("[Generator] Padded patches array shape : " + str(padded_patches.shape))
         # On envoie tout ça comme un gros batch dans le VGG

@@ -9,7 +9,7 @@ from CustomCallbacks import TensorBoardImage, EncoderCheckpoint, HuffmanCallback
 from CustomLoss import loss, code
 from Generator import DataGenerator
 from Model import build_model
-from ModelConfig import img_input_shape, dataset_path, train_dir, validation_dir, test_dir,load_model
+from ModelConfig import INPUT_SHAPE, DATASET_PATH, TRAIN_DIR, VALIDATION_DIR, TEST_DIR,load_model
 
 
 # sess = K.get_session()
@@ -18,16 +18,16 @@ from ModelConfig import img_input_shape, dataset_path, train_dir, validation_dir
 
 # Test with CIFAR10 dataset for now, has images of size (32, 32, 3)
 
-train_list = os.listdir(dataset_path+"/"+train_dir)
-val_list = os.listdir(dataset_path+"/"+validation_dir)
-test_list = os.listdir(dataset_path+"/"+test_dir)
+train_list = os.listdir(DATASET_PATH + "/" + TRAIN_DIR)
+val_list = os.listdir(DATASET_PATH + "/" + VALIDATION_DIR)
+test_list = os.listdir(DATASET_PATH + "/" + TEST_DIR)
 
 train_ratio = 0.7
 val_ratio = 0.2
 
 
-train_generator = DataGenerator(dataset_path+"/"+train_dir,train_list,32,img_input_shape)
-test_generator = DataGenerator(dataset_path+"/"+validation_dir,val_list,32,img_input_shape)
+train_generator = DataGenerator(DATASET_PATH + "/" + TRAIN_DIR, train_list, 32, INPUT_SHAPE)
+test_generator = DataGenerator(DATASET_PATH + "/" + VALIDATION_DIR, val_list, 32, INPUT_SHAPE)
 
 # Compile model with adam optimizer
 optimizer = {
