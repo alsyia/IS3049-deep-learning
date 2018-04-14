@@ -36,7 +36,7 @@ class HuffmanCallback(Callback):
         compression_rate = []
         for idx in range(codes.shape[0]):
             mapping, original_size, compressed_size = huffman_coding(
-                codes[0])
+                codes[idx])
             compression_rate += [compressed_size/original_size]
 
         print("[huffman] average compression rate : {}".format(
