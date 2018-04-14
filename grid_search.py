@@ -13,7 +13,7 @@ from keras.applications import VGG19
 from keras.utils import plot_model as keras_utils_plot_model
 
 from CustomCallbacks import TensorBoardImage, EncoderCheckpoint, HuffmanCallback, schedule
-from CustomLoss import loss, code, perceptual_2, perceptual_5
+from CustomLoss import loss, code, perceptual_2, perceptual_5, entropy
 from Generator import DataGenerator
 from Model import build_model
 from ModelConfig import img_input_shape, dataset_path, train_dir, validation_dir, test_dir
@@ -58,25 +58,31 @@ train_generator = DataGenerator(
 val_generator = DataGenerator(
     dataset_path + "/" + validation_dir, val_list, perceptual_model, len(val_list), img_input_shape)
 
-
 lr_decay = LearningRateScheduler(schedule)
 
 
 # Different optimizer choice
 optimizer_params = {
-    1: [Adam,{"lr":1e-4, "clipnorm":1}],
-    2: [Adam,{"lr":1e-3, "clipnorm":1}]
+    1: [Adam, {"lr": 1e-4, "clipnorm": 1}]
 }
 
 # Different earlystopping choice
 earlystopping_params = {
-    1: [EarlyStopping,{"monitor":'val_loss', "min_delta":1e-3, "patience":20, "verbose":0, "mode":'auto'}],
-    2: [EarlyStopping,{"monitor":'val_loss', "min_delta":1e-4, "patience":20, "verbose":0, "mode":'auto'}]
+    1: [EarlyStopping, {"monitor": 'val_loss', "min_delta": 1e-4, "patience": 20, "verbose": 0, "mode": 'auto'}]
 }
 
+# loss weights
+loss_params = {
+    1: [1, 0, 0, 0],
+    2: [1, 1, 0, 0],
+    3: [1, 1, 1, 1]
+}
 experiment = [{"optimizer": optimizer_params[i],
-               "earlystopping":earlystopping_params[j]}
-              for (i, j) in [x for x in itertools.product(optimizer_params, earlystopping_params)]]
+               "earlystopping":earlystopping_params[j],
+               "loss_weights":loss_params[k]}
+              for (i, j, k) in [x for x in itertools.product(optimizer_params,
+                                                             earlystopping_params,
+                                                             loss_params)]]
 
 for idx, exp in enumerate(experiment):
     print("starting experiment {} with {}".format(idx, exp))
@@ -94,10 +100,10 @@ for idx, exp in enumerate(experiment):
         autoencoder.load_weights(weight_path)
 
     optimizer = exp["optimizer"][0](**exp["optimizer"][1])
-
+    loss_weights = exp["loss_weights"]
 
     autoencoder.compile(optimizer=optimizer, loss={"clipping_layer_1": loss,
-                                                          "rounding_layer_1": code,
+                                                          "rounding_layer_1": entropy,
                                                           "VGG_block_2": perceptual_2,
                                                           "VGG_block_5": perceptual_5})
 
