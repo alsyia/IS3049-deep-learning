@@ -149,7 +149,6 @@ if __name__ == '__main__':
                                                loss_weights=[1,1,1,1,1])
 
     # extra callbacks
-
     early_stopping = EarlyStopping(
         monitor='val_loss',
         min_delta=1e-4,

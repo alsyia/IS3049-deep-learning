@@ -1,11 +1,11 @@
 # Dataset
-DATASET_PATH = "./celeba64_debug100"
+DATASET_PATH = "./cifar10_test_100"
 TEST_DIR = "test"
 TRAIN_DIR = "train"
 VALIDATION_DIR = "val"
 
 BATCH_SIZE = 16
-EPOCH_NB = 30
+EPOCH_NB = 1
 
 # Encoder
 ALPHA = 0.3  # Leaky ReLu alpha value
@@ -37,5 +37,6 @@ LOSS_PARAMS = {
     "bit": 0,
     "entropy": 0.01,
     "perceptual_2": 0.001,
-    "perceptual_5": 0.1
+    "perceptual_5": 0.1,
+    "texture": 0.000001
 }
