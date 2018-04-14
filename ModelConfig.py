@@ -1,11 +1,11 @@
 # Dataset
-dataset_path = "./cifar10_test_100"
+dataset_path = "./6000"
 test_dir = "test"
 train_dir = "train"
 validation_dir = "val"
 
 batch_size = 16
-epoch_nb = 1
+epoch_nb = 30
 
 # Encoder
 a = 0.3  # Leaky ReLu alpha value
@@ -29,8 +29,7 @@ d_res_block_conv_params = {  # Parameters of residual blocks
 loss_params = {
     "mse": 1,
     "bit": 0,
-    "entropy": 1,
+    "entropy": 0.01,
     "perceptual_2": 0.001,
-    "perceptual_5": 0.1,
-    "texture": 0.000001
+    "perceptual_5": 0.1
 }
