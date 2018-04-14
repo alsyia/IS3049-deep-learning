@@ -24,7 +24,7 @@ def entropy(x_true, x_pred):
 
     freq = tf.divide(count,sum_count)
     entropy = tf.reduce_mean(-tf.reduce_sum(freq * tf.log(freq)))
-    return entropy
+    return loss_params["entropy"] * entropy
 
 
 def perceptual_2(x_true, x_pred):

@@ -61,12 +61,10 @@ def decoder(encoded):
         d = Add(name="d_add_" + str(next(add_index)))([d, d_skip_connection])
         d_skip_connection = d
 
-    d = Conv2D(filters=256, kernel_size=(3, 3), padding='same', strides=(1, 1), name="d_conv_" + str(next(conv_index)))(
-        d)
+    d = Conv2D(filters=256, kernel_size=(3, 3), padding='same', strides=(1, 1), name="d_conv_" + str(next(conv_index)))(d)
     d = Lambda(function=subpixel, name="d_lambda_" + str(next(lambda_index)))(d)
 
-    d = Conv2D(filters=12, kernel_size=(3, 3), padding='same', strides=(1, 1), name="d_conv_" + str(next(conv_index)))(
-        d)
+    d = Conv2D(filters=12, kernel_size=(3, 3), padding='same', strides=(1, 1), name="d_conv_" + str(next(conv_index)))(d)
     d = Lambda(function=subpixel, name="d_lambda_" + str(next(lambda_index)))(d)
 
     d = ClippingLayer(0, 1)(d)
