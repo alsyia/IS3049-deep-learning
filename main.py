@@ -158,7 +158,7 @@ if __name__ == '__main__':
         mode='auto')
 
     autoencoder = train(autoencoder,
-                        200,
+                        30,
                         exp_path,
                         train_generator,
                         val_generator,
