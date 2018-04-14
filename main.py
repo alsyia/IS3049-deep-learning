@@ -151,17 +151,17 @@ if __name__ == '__main__':
     lr_decay = LearningRateScheduler(schedule)
     early_stopping = EarlyStopping(
         monitor='val_loss',
-        min_delta=1e-5,
+        min_delta=1e-4,
         patience=20,
         verbose=1,
         mode='auto')
 
     autoencoder = train(autoencoder,
-                        100,
+                        200,
                         exp_path,
                         train_generator,
                         val_generator,
                         test_list,
-                        32,
+                        BATCH_SIZE,
                         [early_stopping, lr_decay])
     predict_from_ae(DATASET_PATH + "/" + VALIDATION_DIR, autoencoder)
