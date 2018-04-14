@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 *.png
 .idea/
+experiments/
 Graph/
 data/
 6000/
