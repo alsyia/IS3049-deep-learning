@@ -3,7 +3,6 @@ import argparse
 import PIL.Image
 import numpy as np
 
-from Generator import DataGenerator
 from Model import build_model, Model
 from ModelConfig import INPUT_SHAPE
 from keras.applications import VGG19
@@ -46,7 +45,13 @@ def predict_from_weights(input_path, weight_path, limit=10):
                              outputs=[base_model.get_layer("block2_pool").output,
                                       base_model.get_layer("block5_pool").output],
                              name="VGG")
-    autoencoder, _ = build_model(perceptual_model)
+
+    texture_model = Model(inputs=base_model.input,
+                            outputs=[base_model.get_layer("block2_pool").output],
+                            name="VGG_texture")
+
+
+    autoencoder, _ = build_model(perceptual_model, texture_model)
 
     if os.path.isfile(weight_path):
         print("loading weights from {}".format(weight_path))
