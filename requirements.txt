@@ -2,3 +2,4 @@ keras
 pydot
 tensorflow
 pillow
+scikit-image
