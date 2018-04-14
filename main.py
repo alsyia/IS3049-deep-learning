@@ -14,7 +14,7 @@ from CustomCallbacks import TensorBoardImage, EncoderCheckpoint, HuffmanCallback
 from CustomLoss import loss, code, perceptual_2, perceptual_5, entropy
 from Generator import DataGenerator
 from Model import build_model
-from ModelConfig import img_input_shape, dataset_path, train_dir, validation_dir, test_dir, batch_size
+from ModelConfig import img_input_shape, dataset_path, train_dir, validation_dir, test_dir, batch_size, epoch_nb
 from utils import generate_experiment
 from predict import predict_from_ae
 
@@ -135,7 +135,7 @@ if __name__ == '__main__':
         mode='auto')
 
     autoencoder = train(autoencoder,
-                        30,
+                        epoch_nb,
                         exp_path,
                         train_generator,
                         val_generator,
