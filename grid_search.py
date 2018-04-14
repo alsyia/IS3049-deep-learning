@@ -106,7 +106,8 @@ for idx, exp in enumerate(experiment):
     autoencoder.compile(optimizer=optimizer, loss={"clipping_layer_1": loss,
                                                           "rounding_layer_1": entropy,
                                                           "VGG_block_2": perceptual_2,
-                                                          "VGG_block_5": perceptual_5})
+                                                          "VGG_block_5": perceptual_5},
+                        loss_weights=loss_weights)
 
     earlystopping = exp["earlystopping"][0](**exp["earlystopping"][1])
     callbacks = [earlystopping]
