@@ -13,7 +13,7 @@ def clipping(X, min_val, max_val):
 
     g = K.get_session().graph
     with g.gradient_override_map({'clip_by_value': grad_clip}):
-        y = tf.clip_by_value(X, min_val, max_val)
+        y = tf.clip_by_value(X, min_val, max_val, name = "clipping_layer_1")
 
     return y
 
@@ -26,7 +26,7 @@ def rounding(X):
 
     g = K.get_session().graph
     with g.gradient_override_map({'Round': grad_round}):
-        y = tf.round(X)
+        y = tf.round(X, name = "rounding_layer_1")
 
     return y
 
@@ -45,6 +45,7 @@ class ClippingLayer(Layer):
 
     def build(self, input_shape):
         self.trainable_weights = []
+        self.name = "clipping_layer_1"
         super(ClippingLayer, self).build(input_shape)
 
     def call(self, x, mask=None):
@@ -61,6 +62,7 @@ class RoundingLayer(Layer):
         self.supports_masking = False
 
     def build(self, input_shape):
+        self.name = "rounding_layer_1"
         self.trainable_weights = []
         super(RoundingLayer, self).build(input_shape)
 

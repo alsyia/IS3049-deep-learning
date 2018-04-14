@@ -7,6 +7,7 @@ import PIL.Image
 import tensorflow as tf
 from keras.callbacks import Callback
 
+from huffman import huffman_coding
 from ModelConfig import *
 
 
@@ -24,15 +25,22 @@ class PredictCallback(Callback):
 
 
 class HuffmanCallback(Callback):
-    def __init__(self, generator):
-        self.generator = generator
+    def __init__(self, data):
+        self.data = data
 
     def on_epoch_begin(self, epoch, logs={}):
-        # codes = self.model.layers[1].predict(self.generator[0][0])[0]
-        codes = self.model.predict(self.generator[0][0])[0]
-        values, counts = np.unique(codes, return_counts = True)
-        values = values[np.argsort(counts)]
-        print("values : {}".format(values))
+        codes = self.model.predict(self.data)[0]
+        codes = np.reshape(
+            codes, (codes.shape[0], codes.shape[1]*codes.shape[2]*codes.shape[3]))
+        codes = codes.astype(np.int64)
+        compression_rate = []
+        for idx in range(codes.shape[0]):
+            mapping, original_size, compressed_size = huffman_coding(
+                codes[0])
+            compression_rate += [compressed_size/original_size]
+
+        print("[huffman] average compression rate : {}".format(
+            np.mean(compression_rate)))
 
 
 class EncoderCheckpoint(Callback):
@@ -102,13 +110,15 @@ class EncoderCheckpoint(Callback):
                                   (epoch + 1, self.monitor))
             else:
                 if self.verbose > 0:
-                    print('\nEpoch %05d: saving model to %s' % (epoch + 1, filepath))
+                    print('\nEpoch %05d: saving model to %s' %
+                          (epoch + 1, filepath))
                 if self.save_weights_only:
                     # self.model.layers[1].save_weights(filepath, overwrite=True)
                     self.model.save_weights(filepath, overwrite=True)
                 else:
                     self.model.save(filepath, overwrite=True)
                     # self.model.layers[1].save(filepath, overwrite=True)
+
 
 def make_image(tensor):
     height, width, channel = tensor.shape
@@ -142,11 +152,13 @@ def output_to_tf_img(output):
 
 class TensorBoardImage(Callback):
 
-    def __init__(self, tag, test_list, logs_path):
+    def __init__(self, tag, test_list, logs_path, save_img=False, exp_path=None):
         super().__init__()
         self.tag = tag
         self.logs_path = logs_path
         self.test_list = test_list
+        self.exp_path = exp_path
+        self.save_img = save_img
 
     def on_epoch_end(self, epoch, logs=None):
         summaries = []
@@ -156,11 +168,22 @@ class TensorBoardImage(Callback):
             input = image_to_input(path)
             output = self.model.predict(input)[1]
             output_img = output_to_tf_img(output)
-            # summary = tf.Summary(value=[tf.Summary.Value(tag=self.tag + "_" + str(img_name), image=output_img)])
-            summary = tf.Summary.Value(tag=self.tag + "_" + str(img_name), image=output_img)
+            if self.save_img:
+                img = PIL.Image.fromarray(np.uint8(output[0]*255))
+                file_name = img_name.split('.')[0] + "_" + str(epoch) + ".png"
+                img.save(self.exp_path + "/" + file_name)
+            summary = tf.Summary.Value(
+                tag=self.tag + "_" + str(img_name), image=output_img)
             summaries.append(summary)
         big_sum = tf.Summary(value=summaries)
         writer = tf.summary.FileWriter(self.logs_path)
-        # writer.add_summary(summary, epoch)
         writer.add_summary(big_sum, epoch)
-            # writer.close()
+
+# function for learning scheduler
+
+
+def schedule(epoch):
+    if epoch < 50:
+        return 1e-4
+    else:
+        return 5e-5

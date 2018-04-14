@@ -13,7 +13,6 @@ def get_mapping(val, freq):
     heap = [[wt, [sym, ""]] for sym, wt in zip(val, freq)]
     heapify(heap)
     while len(heap) > 1:
-        print(heap)
         lo = heappop(heap)
         hi = heappop(heap)
         for pair in lo[1:]:
@@ -21,7 +20,6 @@ def get_mapping(val, freq):
         for pair in hi[1:]:
             pair[1] = '1' + pair[1]
         heappush(heap, [lo[0] + hi[0]] + lo[1:] + hi[1:])
-    print(heap)
     return sorted(heappop(heap)[1:], key=lambda p: (len(p[-1]), p))
 
 def get_compressed_size(src, mapping):
@@ -40,8 +38,8 @@ def huffman_coding(src):
     Return (mapping, original_size, compressed_size)
     with mapping a list of [symbol, code] 
     """
-    freq = np.bincount(src.ravel())
-    val = np.arange(freq.size)
+    val, freq = np.unique(src.ravel(),return_counts = True)
+
     mapping = get_mapping(val, freq)
 
     return mapping, get_size(src), get_compressed_size(src, mapping)

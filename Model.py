@@ -90,9 +90,9 @@ def build_model(perceptual_model):
     # Return autoencodeur (we are going to train it) and perceptual_model (will be used in the loss)
     return autoencodeur, perceptual_model
 
-    # e_input = Input(shape=e_input_shape, name="e_input_1")
-    # encodeur = Model(e_input,encoder(e_input))
-    #
-    # d, code = decoder(encodeur(e_input))
-    # autoencodeur = Model(e_input,[d,code])
-    # return autoencodeur
+
+def get_encoder(autoencoder):
+    return autoencoder.layers[1]
+
+def get_decoder(autoencoder):
+    return autoencoder.layers[2]
