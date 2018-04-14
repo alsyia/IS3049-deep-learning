@@ -16,7 +16,7 @@ from CustomCallbacks import TensorBoardImage, EncoderCheckpoint, HuffmanCallback
 from CustomLoss import loss, code, perceptual_2, perceptual_5, entropy
 from Generator import DataGenerator
 from Model import build_model
-from ModelConfig import img_input_shape, dataset_path, train_dir, validation_dir, test_dir, batch_size
+from ModelConfig import img_input_shape, dataset_path, train_dir, validation_dir, test_dir, batch_size, epoch_nb
 from utils import generate_experiment
 from predict import predict_from_ae
 from main import train
@@ -110,7 +110,7 @@ for idx, exp in enumerate(experiment):
 
     earlystopping = exp["earlystopping"][0](**exp["earlystopping"][1])
     callbacks = [earlystopping]
-    train(autoencoder, 30, sub_exp_path, train_generator,
+    train(autoencoder, epoch_nb, sub_exp_path, train_generator,
           val_generator, test_list, batch_size, callbacks)
     
     del autoencoder
