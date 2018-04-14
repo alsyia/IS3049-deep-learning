@@ -4,7 +4,7 @@ TEST_DIR = "test"
 TRAIN_DIR = "train"
 VALIDATION_DIR = "val"
 
-BATCH_SIZE = 2
+BATCH_SIZE = 16
 
 # Encoder
 ALPHA = 0.3  # Leaky ReLu alpha value
@@ -34,7 +34,7 @@ TEXTURE_PARAMS = {
 LOSS_PARAMS = {
     "mse": 1,
     "bit": 0,
-    "entropy": 1,
+    "entropy": 0.01,
     "perceptual_2": 0.001,
     "perceptual_5": 0.1,
     "texture": 0.000001

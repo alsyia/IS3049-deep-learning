@@ -145,10 +145,11 @@ if __name__ == '__main__':
                                                 "rounding_layer_1": entropy,
                                                "VGG_block_2": perceptual_2,
                                                "VGG_block_5": perceptual_5,
-                                               "de_patching_layer_1": texture})
+                                               "de_patching_layer_1": texture},
+                                               loss_weights=[1,1,1,1,1])
 
     # extra callbacks
-    lr_decay = LearningRateScheduler(schedule)
+
     early_stopping = EarlyStopping(
         monitor='val_loss',
         min_delta=1e-4,
@@ -163,5 +164,5 @@ if __name__ == '__main__':
                         val_generator,
                         test_list,
                         BATCH_SIZE,
-                        [early_stopping, lr_decay])
+                        [early_stopping])
     predict_from_ae(DATASET_PATH + "/" + VALIDATION_DIR, autoencoder)
