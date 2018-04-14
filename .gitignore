@@ -6,6 +6,9 @@ __pycache__/
 .idea/
 Graph/
 data/
+6000/
+*.zip
+
 # C extensions
 *.so
 

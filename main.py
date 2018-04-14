@@ -117,7 +117,6 @@ autoencoder.fit_generator(train_generator,
                               encodercheckpoint,
                               huffmancallback])
 
-
 img = PIL.Image.open(dataset_path +"/" + validation_dir + "/" +val_list[0])
 img_img = img.resize(img_input_shape[0:2], PIL.Image.ANTIALIAS)
 img = np.asarray(img_img) / 255
