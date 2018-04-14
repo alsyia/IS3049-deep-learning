@@ -1,11 +1,11 @@
 # Dataset
-dataset_path = "./6000"
+dataset_path = "./cifar10_test_100"
 test_dir = "test"
 train_dir = "train"
 validation_dir = "val"
 
 batch_size = 16
-epoch_nb = 30
+epoch_nb = 1
 
 # Encoder
 a = 0.3  # Leaky ReLu alpha value

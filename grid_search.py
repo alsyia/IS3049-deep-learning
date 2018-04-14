@@ -71,10 +71,13 @@ earlystopping_params = {
 
 # loss weights
 loss_params = {
-    1: [1, 0, 0, 0],
-    2: [1, 1, 0, 0],
-    3: [1, 1, 1, 1]
+    6: [1, 0.1, 1, 1],
+    7: [1, 1, 0.1, 0.1],
+    8: [1, 0.1, 0.1, 0.1],
+    9: [0.1, 0.1, 1, 1],
+    10: [0.1, 1, 1, 1]
 }
+
 experiment = [{"optimizer": optimizer_params[i],
                "earlystopping":earlystopping_params[j],
                "loss_weights":loss_params[k]}
