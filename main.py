@@ -14,7 +14,7 @@ from CustomCallbacks import TensorBoardImage, EncoderCheckpoint, HuffmanCallback
 from CustomLoss import loss, code, perceptual_2, perceptual_5, entropy
 from Generator import DataGenerator
 from Model import build_model
-from ModelConfig import img_input_shape, dataset_path, train_dir, validation_dir, test_dir
+from ModelConfig import img_input_shape, dataset_path, train_dir, validation_dir, test_dir, batch_size
 from utils import generate_experiment
 from predict import predict_from_ae
 
@@ -101,7 +101,7 @@ if __name__ == '__main__':
 
     # Create generator for both train data
     train_generator = DataGenerator(
-        dataset_path + "/" + train_dir, train_list, perceptual_model, 32, img_input_shape)
+        dataset_path + "/" + train_dir, train_list, perceptual_model, batch_size, img_input_shape)
     val_generator = DataGenerator(
         dataset_path + "/" + validation_dir, val_list, perceptual_model, len(val_list), img_input_shape)
 
@@ -129,17 +129,17 @@ if __name__ == '__main__':
     lr_decay = LearningRateScheduler(schedule)
     early_stopping = EarlyStopping(
         monitor='val_loss',
-        min_delta=1e-5,
+        min_delta=1e-4,
         patience=20,
         verbose=1,
         mode='auto')
 
     autoencoder = train(autoencoder,
-                        100,
+                        30,
                         exp_path,
                         train_generator,
                         val_generator,
                         test_list,
-                        32,
+                        batch_size,
                         [early_stopping, lr_decay])
     predict_from_ae(dataset_path + "/" + validation_dir, autoencoder)
