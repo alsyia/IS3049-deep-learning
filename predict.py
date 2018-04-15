@@ -1,15 +1,16 @@
-import os
 import argparse
+import os
+
 import PIL.Image
 import numpy as np
+from keras.applications import VGG19
 
-from Generator import DataGenerator
 from Model import build_model, Model
 from ModelConfig import img_input_shape
-from keras.applications import VGG19
 from huffman import huffman_coding
 
-def predict_from_ae(input_path,autoencoder, limit=10):
+
+def predict_from_ae(input_path, autoencoder, limit=10):
     if os.path.isfile(input_path):
         img_list = [input_path]
     elif os.path.isdir(input_path):
@@ -19,9 +20,8 @@ def predict_from_ae(input_path,autoencoder, limit=10):
 
     if not os.path.exists("output"):
         os.mkdir('output')
-        
-    
-    mse_list  = []
+
+    mse_list = []
     psnr_list = []
     size_list = []
     dic_size = []
@@ -36,11 +36,11 @@ def predict_from_ae(input_path,autoencoder, limit=10):
         codes = reconstruction[0]
         mapping, original_size, compressed_size = huffman_coding(codes)
         size_list += [compressed_size]
-        tx_list += [1- compressed_size/original_size]
+        tx_list += [1 - compressed_size / original_size]
         print(tx_list)
 
         dic_size += [32 + len(code[1]) for code in mapping]
-        
+
         reconstruction = reconstruction[1] * 255
         reconstruction = np.clip(reconstruction, 0, 255)
         reconstruction = np.uint8(reconstruction)
@@ -48,42 +48,44 @@ def predict_from_ae(input_path,autoencoder, limit=10):
 
         mse = np.mean((img * 255 - reconstruction) ** 2)
         mse_list += [mse]
-        
-        psnr = 10 * np.log(255**2/mse)/np.log(10)
+
+        psnr = 10 * np.log(255 ** 2 / mse) / np.log(10)
         psnr_list += [psnr]
 
-        print('img {} mse : {} psnr : {}'.format(img_list[img_idx],mse,psnr))
-        
+        print('img {} mse : {} psnr : {}'.format(img_list[img_idx], mse, psnr))
+
         reconstruction_img = PIL.Image.fromarray(reconstruction)
         filename = os.path.basename(img_list[img_idx]).split('.')[0]
         img_img.save("output/" + filename + "_true.png")
         reconstruction_img.save("output/" + filename + "_pred.png")
 
-    bpp = (np.sum(size_list) + np.sum(dic_size)) / (min(limit, len(img_list))*np.product(img_input_shape))
+    bpp = (np.sum(size_list) + np.sum(dic_size)) / (min(limit, len(img_list)) * np.product(img_input_shape))
     psnr = np.mean(psnr_list)
     mse = np.mean(mse_list)
 
     print("bpp: {}, psnr: {}, mse: {}".format(bpp, psnr, mse))
 
-def predict_from_weights(input_path, weight_path, limit = 10):
+
+def predict_from_weights(input_path, weight_path, limit=10):
     # VGG for the perceptual loss
     base_model = VGG19(weights="imagenet", include_top=False,
                        input_shape=img_input_shape)
 
     perceptual_model = Model(inputs=base_model.input,
                              outputs=[base_model.get_layer("block2_pool").output,
-                                     base_model.get_layer("block5_pool").output],
+                                      base_model.get_layer("block5_pool").output],
                              name="VGG")
 
-    autoencoder,_ = build_model(perceptual_model)
+    autoencoder, _ = build_model(perceptual_model)
 
     if os.path.isfile(weight_path):
         print("loading weights from {}".format(weight_path))
         autoencoder.load_weights(weight_path)
     else:
         raise Exception("weight path does not exist")
-    
-    predict_from_ae(input_path,autoencoder,limit)
+
+    predict_from_ae(input_path, autoencoder, limit)
+
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser(

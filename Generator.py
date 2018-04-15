@@ -1,12 +1,12 @@
-import numpy as np
 import PIL
 import keras
+import numpy as np
 
 from ModelConfig import *
 
 
 class DataGenerator(keras.utils.Sequence):
-    'Generates data for Keras'
+    """Generates data for Keras"""
 
     def __init__(self, folder, img_list, vgg, batch_size=32, dim=(32, 32, 3), shuffle=True):
         'Initialization'
@@ -20,11 +20,11 @@ class DataGenerator(keras.utils.Sequence):
         self.on_epoch_end()
 
     def __len__(self):
-        'Denotes the number of batches per epoch'
+        """Denotes the number of batches per epoch"""
         return int(np.floor(self.len_data / self.batch_size))
 
     def __getitem__(self, index):
-        'Generate one batch of data'
+        """Generate one batch of data"""
         # Generate indexes of the batch
         indexes = self.indexes[index * self.batch_size:(index + 1) * self.batch_size]
 
@@ -37,16 +37,16 @@ class DataGenerator(keras.utils.Sequence):
         return X, [B, X, F2, F5]
 
     def on_epoch_end(self):
-        'Updates indexes after each epoch'
+        """Updates indexes after each epoch"""
         self.indexes = np.arange(self.len_data)
         if self.shuffle == True:
             np.random.shuffle(self.indexes)
 
     def __data_generation(self, img_temp):
-        'Generates data containing batch_size samples'  # X : (n_samples, *dim)
+        """Generates data containing batch_size samples"""  # X : (n_samples, *dim)
         # Initialization
         X = np.empty((self.batch_size, *self.dim))
-        B = np.empty((self.batch_size, self.dim[0]//8, self.dim[1]//8, 96))
+        B = np.empty((self.batch_size, self.dim[0] // 8, self.dim[1] // 8, 96))
         # Generate data
         for i in range(len(img_temp)):
             # Store sample
@@ -56,7 +56,7 @@ class DataGenerator(keras.utils.Sequence):
             X[i,] = img / 255
 
             # B sert juste à avoir une coherence entre les sorties du réseau et les verites terrains
-            # il est rempli de 0
+            #  il est rempli de 0
             B[i,] = 0
 
         # On génère maintenant les features pour la perceptual_loss

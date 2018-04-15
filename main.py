@@ -1,22 +1,23 @@
 import os
-import shutil
 import pickle
-import numpy as np
+import shutil
+
 import PIL.Image
+import numpy as np
+from keras.applications import VGG19
+from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping, LearningRateScheduler
 from keras.models import Model
 from keras.optimizers import Adam
-from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping, LearningRateScheduler
-from keras.losses import mse
-from keras.applications import VGG19
 from keras.utils import plot_model as keras_utils_plot_model
 
-from CustomCallbacks import TensorBoardImage, EncoderCheckpoint, HuffmanCallback, schedule
-from CustomLoss import loss, code, perceptual_2, perceptual_5, entropy
+from CustomCallbacks import TensorBoardImage, HuffmanCallback, schedule
+from CustomLoss import loss, perceptual_2, perceptual_5, entropy
 from Generator import DataGenerator
 from Model import build_model
 from ModelConfig import img_input_shape, dataset_path, train_dir, validation_dir, test_dir, batch_size, epoch_nb
-from utils import generate_experiment
 from predict import predict_from_ae
+from utils import generate_experiment
+
 
 def train(autoencoder,
           nb_epochs,
@@ -65,24 +66,25 @@ def train(autoencoder,
     shutil.copytree('./logs/run' + str(log_index), exp_path + '/run' + str(log_index))
     return autoencoder
 
+
 if __name__ == '__main__':
     # On importe les données
-    train_list = os.listdir(dataset_path+"/"+train_dir)
-    val_list = os.listdir(dataset_path+"/"+validation_dir)
-    test_list = os.listdir(dataset_path+"/"+test_dir)
+    train_list = os.listdir(dataset_path + "/" + train_dir)
+    val_list = os.listdir(dataset_path + "/" + validation_dir)
+    test_list = os.listdir(dataset_path + "/" + test_dir)
 
     # On crée le dossier
     exp_path = generate_experiment()
 
     # Instanciate the VGG used for texture loss
     base_model = VGG19(weights="imagenet", include_top=False,
-                    input_shape=img_input_shape)
+                       input_shape=img_input_shape)
 
     # Get the relevant layers
     perceptual_model = Model(inputs=base_model.input,
-                            outputs=[base_model.get_layer("block2_pool").output,
-                                    base_model.get_layer("block5_pool").output],
-                            name="VGG")
+                             outputs=[base_model.get_layer("block2_pool").output,
+                                      base_model.get_layer("block5_pool").output],
+                             name="VGG")
 
     # Freeze this model
     perceptual_model.trainable = False
@@ -105,7 +107,6 @@ if __name__ == '__main__':
     val_generator = DataGenerator(
         dataset_path + "/" + validation_dir, val_list, perceptual_model, len(val_list), img_input_shape)
 
-
     plot_model = False
     if plot_model:
         # Plot model graph
@@ -117,13 +118,12 @@ if __name__ == '__main__':
         print("loading weights from {}".format(weight_path))
         autoencoder.load_weights(weight_path)
 
-
     # Compile model with adam optimizer
     optimizer = Adam(lr=1e-4, clipnorm=1)
     autoencoder.compile(optimizer=optimizer, loss={"clipping_layer_1": loss,
-                                                "rounding_layer_1": entropy,
-                                                "VGG_block_2": perceptual_2,
-                                                "VGG_block_5": perceptual_5})
+                                                   "rounding_layer_1": entropy,
+                                                   "VGG_block_2": perceptual_2,
+                                                   "VGG_block_5": perceptual_5})
 
     # extra callbacks
     lr_decay = LearningRateScheduler(schedule)

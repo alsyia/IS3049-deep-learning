@@ -2,7 +2,6 @@ from itertools import count
 
 from keras.layers import Input, Conv2D, Add, LeakyReLU, Lambda
 from keras.models import Model
-from keras.applications import VGG19
 
 from CustomLayers import ClippingLayer, RoundingLayer
 from ModelConfig import *
@@ -46,7 +45,6 @@ def decoder(encoded):
     leaky_index = count(start=1)
     add_index = count(start=1)
 
-
     d = Conv2D(filters=512, kernel_size=(3, 3), padding='same', strides=(1, 1), name="d_conv_" + str(next(conv_index)))(
         encoded)
     d = Lambda(function=subpixel, name="d_lambda_" + str(next(lambda_index)))(d)
@@ -61,10 +59,12 @@ def decoder(encoded):
         d = Add(name="d_add_" + str(next(add_index)))([d, d_skip_connection])
         d_skip_connection = d
 
-    d = Conv2D(filters=256, kernel_size=(3, 3), padding='same', strides=(1, 1), name="d_conv_" + str(next(conv_index)))(d)
+    d = Conv2D(filters=256, kernel_size=(3, 3), padding='same', strides=(1, 1), name="d_conv_" + str(next(conv_index)))(
+        d)
     d = Lambda(function=subpixel, name="d_lambda_" + str(next(lambda_index)))(d)
 
-    d = Conv2D(filters=12, kernel_size=(3, 3), padding='same', strides=(1, 1), name="d_conv_" + str(next(conv_index)))(d)
+    d = Conv2D(filters=12, kernel_size=(3, 3), padding='same', strides=(1, 1), name="d_conv_" + str(next(conv_index)))(
+        d)
     d = Lambda(function=subpixel, name="d_lambda_" + str(next(lambda_index)))(d)
 
     d = ClippingLayer(0, 1)(d)
@@ -80,10 +80,10 @@ def build_model(perceptual_model):
     decoded = decoder(encoded)
     featured = perceptual_model(decoded)
     # Define global models with multiple outputs
-    #autoencodeur = Model(e_input, [encoded, decoded, *featured])
+    # autoencodeur = Model(e_input, [encoded, decoded, *featured])
 
-    block_2 = Lambda(lambda x:x, name = "VGG_block_2")(featured[0])
-    block_5 = Lambda(lambda x:x, name = "VGG_block_5")(featured[1])
+    block_2 = Lambda(lambda x: x, name="VGG_block_2")(featured[0])
+    block_5 = Lambda(lambda x: x, name="VGG_block_5")(featured[1])
     autoencodeur = Model(e_input, [encoded, decoded, block_2, block_5])
     # Return autoencodeur (we are going to train it) and perceptual_model (will be used in the loss)
     return autoencodeur, perceptual_model
@@ -91,6 +91,7 @@ def build_model(perceptual_model):
 
 def get_encoder(autoencoder):
     return autoencoder.layers[1]
+
 
 def get_decoder(autoencoder):
     return autoencoder.layers[2]

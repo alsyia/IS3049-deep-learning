@@ -1,30 +1,24 @@
-import os
 import itertools
-import shutil
-import pickle
-import json
-import numpy as np
+import os
+
 import PIL.Image
+import numpy as np
+from keras.applications import VGG19
+from keras.callbacks import EarlyStopping
 from keras.models import Model
 from keras.optimizers import Adam
-from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping, LearningRateScheduler
-from keras.losses import mse
-from keras.applications import VGG19
-from keras.utils import plot_model as keras_utils_plot_model
 
-from CustomCallbacks import TensorBoardImage, EncoderCheckpoint, HuffmanCallback, schedule
-from CustomLoss import loss, code, perceptual_2, perceptual_5, entropy
+from CustomLoss import loss, perceptual_2, perceptual_5, entropy
 from Generator import DataGenerator
 from Model import build_model
 from ModelConfig import img_input_shape, dataset_path, train_dir, validation_dir, test_dir, batch_size, epoch_nb
-from utils import generate_experiment
-from predict import predict_from_ae
 from main import train
+from utils import generate_experiment
 
 # On importe les données
-train_list = os.listdir(dataset_path+"/"+train_dir)
-val_list = os.listdir(dataset_path+"/"+validation_dir)
-test_list = os.listdir(dataset_path+"/"+test_dir)
+train_list = os.listdir(dataset_path + "/" + train_dir)
+val_list = os.listdir(dataset_path + "/" + validation_dir)
+test_list = os.listdir(dataset_path + "/" + test_dir)
 
 # On crée le dossier
 exp_path = generate_experiment()
@@ -58,7 +52,6 @@ train_generator = DataGenerator(
 val_generator = DataGenerator(
     dataset_path + "/" + validation_dir, val_list, perceptual_model, len(val_list), img_input_shape)
 
-
 # Different optimizer choice
 optimizer_params = {
     1: [Adam, {"lr": 1e-4, "clipnorm": 1}]
@@ -79,8 +72,8 @@ loss_params = {
 }
 
 experiment = [{"optimizer": optimizer_params[i],
-               "earlystopping":earlystopping_params[j],
-               "loss_weights":loss_params[k]}
+               "earlystopping": earlystopping_params[j],
+               "loss_weights": loss_params[k]}
               for (i, j, k) in [x for x in itertools.product(optimizer_params,
                                                              earlystopping_params,
                                                              loss_params)]]
@@ -104,16 +97,14 @@ for idx, exp in enumerate(experiment):
     loss_weights = exp["loss_weights"]
 
     autoencoder.compile(optimizer=optimizer, loss={"clipping_layer_1": loss,
-                                                          "rounding_layer_1": entropy,
-                                                          "VGG_block_2": perceptual_2,
-                                                          "VGG_block_5": perceptual_5},
+                                                   "rounding_layer_1": entropy,
+                                                   "VGG_block_2": perceptual_2,
+                                                   "VGG_block_5": perceptual_5},
                         loss_weights=loss_weights)
 
     earlystopping = exp["earlystopping"][0](**exp["earlystopping"][1])
     callbacks = [earlystopping]
     train(autoencoder, epoch_nb, sub_exp_path, train_generator,
           val_generator, test_list, batch_size, callbacks)
-    
+
     del autoencoder
-
-

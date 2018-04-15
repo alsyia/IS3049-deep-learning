@@ -1,8 +1,10 @@
+import os
+import shutil
+from datetime import datetime
+
 import numpy as np
 import tensorflow as tf
-import shutil
-import os
-from datetime import datetime
+
 
 def subpixel(x, scale=2):
     """
@@ -21,6 +23,7 @@ def mirror_padding(img, p):
     padded[:, :, 1] = np.pad(img[:, :, 1], p, mode="reflect")
     padded[:, :, 2] = np.pad(img[:, :, 2], p, mode="reflect")
     return padded
+
 
 def generate_experiment():
     # create a folder for the experiment

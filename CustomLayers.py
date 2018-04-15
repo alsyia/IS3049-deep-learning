@@ -1,32 +1,36 @@
+import keras.backend as K
 import numpy as np
 import tensorflow as tf
-import keras.backend as K
 from keras.layers import Layer
 
 grad_clip = "GradientClipping"
+
 
 @tf.RegisterGradient(grad_clip)
 def _grad_identity(op, grad):
     return grad
 
-def clipping(X, min_val, max_val):
 
+def clipping(X, min_val, max_val):
     g = K.get_session().graph
     with g.gradient_override_map({'clip_by_value': grad_clip}):
-        y = tf.clip_by_value(X, min_val, max_val, name = "clipping_layer_1")
+        y = tf.clip_by_value(X, min_val, max_val, name="clipping_layer_1")
 
     return y
 
+
 grad_round = "GradientRounding"
+
+
 @tf.RegisterGradient(grad_round)
 def _grad__identity(op, grad):
     return grad
 
-def rounding(X):
 
+def rounding(X):
     g = K.get_session().graph
     with g.gradient_override_map({'Round': grad_round}):
-        y = tf.round(X, name = "rounding_layer_1")
+        y = tf.round(X, name="rounding_layer_1")
 
     return y
 

@@ -1,14 +1,14 @@
 import io
 import warnings
 
-import numpy as np
 import PIL
 import PIL.Image
+import numpy as np
 import tensorflow as tf
 from keras.callbacks import Callback
 
-from huffman import huffman_coding
 from ModelConfig import *
+from huffman import huffman_coding
 
 
 class PredictCallback(Callback):
@@ -17,10 +17,10 @@ class PredictCallback(Callback):
 
     def on_epoch_end(self, epoch, logs={}):
         imgs = self.generator[0][0]
-        img = PIL.Image.fromarray(np.uint8(imgs[0]*255))
+        img = PIL.Image.fromarray(np.uint8(imgs[0] * 255))
         img.show()
         imgs = self.model.predict(imgs)
-        img = PIL.Image.fromarray(np.uint8(imgs[0]*255))
+        img = PIL.Image.fromarray(np.uint8(imgs[0] * 255))
         img.show()
 
 
@@ -31,13 +31,13 @@ class HuffmanCallback(Callback):
     def on_epoch_begin(self, epoch, logs={}):
         codes = self.model.predict(self.data)[0]
         codes = np.reshape(
-            codes, (codes.shape[0], codes.shape[1]*codes.shape[2]*codes.shape[3]))
+            codes, (codes.shape[0], codes.shape[1] * codes.shape[2] * codes.shape[3]))
         codes = codes.astype(np.int64)
         compression_rate = []
         for idx in range(codes.shape[0]):
             mapping, original_size, compressed_size = huffman_coding(
                 codes[idx])
-            compression_rate += [compressed_size/original_size]
+            compression_rate += [compressed_size / original_size]
 
         print("[huffman] average compression rate : {}".format(
             np.mean(compression_rate)))
@@ -169,7 +169,7 @@ class TensorBoardImage(Callback):
             output = self.model.predict(input)[1]
             output_img = output_to_tf_img(output)
             if self.save_img:
-                img = PIL.Image.fromarray(np.uint8(output[0]*255))
+                img = PIL.Image.fromarray(np.uint8(output[0] * 255))
                 file_name = img_name.split('.')[0] + "_" + str(epoch) + ".png"
                 img.save(self.exp_path + "/" + file_name)
             summary = tf.Summary.Value(
@@ -178,6 +178,7 @@ class TensorBoardImage(Callback):
         big_sum = tf.Summary(value=summaries)
         writer = tf.summary.FileWriter(self.logs_path)
         writer.add_summary(big_sum, epoch)
+
 
 # function for learning scheduler
 
