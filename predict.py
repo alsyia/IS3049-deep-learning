@@ -64,7 +64,7 @@ def predict_from_ae(input_path, autoencoder, limit=10):
     psnr = np.mean(psnr_list)
     mse = np.mean(mse_list)
 
-    print("bpp: {}, psnr: {}, mse: {}".format(bpp, psnrn mse))
+    print("bpp: {}, psnr: {}, mse: {}".format(bpp, psnr, mse))
 
 def predict_from_weights(input_path, weight_path, limit=10):
     # VGG for the perceptual loss
