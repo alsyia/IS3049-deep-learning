@@ -30,19 +30,21 @@ def predict_from_ae(input_path, autoencoder, limit=10):
         img = img.reshape(1, *INPUT_SHAPE)
         reconstruction = autoencoder.predict(img)
 
-        #codes = np.concatenate((codes,reconstruction[0]), axis = 0)
+
         codes = reconstruction[0]
         mapping, _, compressed_size = huffman_coding(codes)
         size_list += [compressed_size]
-        # dic_size += [len(mapping)]
-        dic_size += [sum(len(code) for code in mapping.values())]
+
+        print(mapping)
+
+        dic_size += [len(code[1]) for code in mapping]
         
         reconstruction = reconstruction[1] * 255
         reconstruction = np.clip(reconstruction, 0, 255)
         reconstruction = np.uint8(reconstruction)
         reconstruction = reconstruction.reshape(*INPUT_SHAPE)
 
-        #mse = np.sum(np.power((img - reconstruction),2)) / 64**4
+
         mse = np.mean((img - reconstruction) ** 2)
         mse_list += [mse]
         
@@ -58,7 +60,7 @@ def predict_from_ae(input_path, autoencoder, limit=10):
 
 
     #bpp = np.sum(compressed_size) / (64**2*len(img_list))
-    bpp = np.sum(size_list) + np.sum(dic_size) / min(limit, len(img_list))*np.product(INPUT_SHAPE)
+    bpp = (np.sum(size_list) + np.sum(dic_size)) / (min(limit, len(img_list))*np.product(INPUT_SHAPE))
     psnr = np.mean(psnr_list)
 
     print("bpp: {}, psnr: {}".format(bpp, psnr))
