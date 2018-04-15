@@ -62,8 +62,9 @@ def predict_from_ae(input_path, autoencoder, limit=10):
 
     bpp = (np.sum(size_list) + np.sum(dic_size)) / (min(limit, len(img_list))*np.product(INPUT_SHAPE))
     psnr = np.mean(psnr_list)
+    mse = np.mean(mse_list)
 
-    print("bpp: {}, psnr: {}".format(bpp, psnr))
+    print("bpp: {}, psnr: {}, mse: {}".format(bpp, psnrn mse))
 
 def predict_from_weights(input_path, weight_path, limit=10):
     # VGG for the perceptual loss
