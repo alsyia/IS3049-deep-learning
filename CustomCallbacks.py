@@ -8,7 +8,7 @@ import tensorflow as tf
 from keras.callbacks import Callback
 
 from ModelConfig import *
-from huffman import huffman_coding
+from Huffman import huffman_coding
 
 
 class PredictCallback(Callback):

@@ -5,7 +5,7 @@ from keras.models import Model
 
 from CustomLayers import ClippingLayer, RoundingLayer
 from ModelConfig import *
-from utils import subpixel
+from Utils import subpixel
 
 
 def encoder(e_input):

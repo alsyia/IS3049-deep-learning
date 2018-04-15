@@ -13,7 +13,7 @@ from Generator import DataGenerator
 from Model import build_model
 from ModelConfig import img_input_shape, dataset_path, train_dir, validation_dir, test_dir, batch_size, epoch_nb
 from main import train
-from utils import generate_experiment
+from Utils import generate_experiment
 
 # On importe les données
 train_list = os.listdir(dataset_path + "/" + train_dir)

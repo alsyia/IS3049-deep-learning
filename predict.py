@@ -7,7 +7,7 @@ from keras.applications import VGG19
 
 from Model import build_model, Model
 from ModelConfig import img_input_shape
-from huffman import huffman_coding
+from Huffman import huffman_coding
 
 
 def predict_from_ae(input_path, autoencoder, limit=10):

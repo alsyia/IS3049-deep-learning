@@ -16,7 +16,7 @@ from Generator import DataGenerator
 from Model import build_model
 from ModelConfig import img_input_shape, dataset_path, train_dir, validation_dir, test_dir, batch_size, epoch_nb
 from predict import predict_from_ae
-from utils import generate_experiment
+from Utils import generate_experiment
 
 
 def train(autoencoder,
