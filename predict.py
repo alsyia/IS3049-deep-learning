@@ -38,7 +38,7 @@ def predict_from_ae(input_path, autoencoder, limit=10):
         tx_list += [1- compressed_size/original_size]
         print(tx_list)
 
-        dic_size += [len(code[1]) for code in mapping]
+        dic_size += [32 + len(code[1]) for code in mapping]
         
         reconstruction = reconstruction[1] * 255
         reconstruction = np.clip(reconstruction, 0, 255)
@@ -60,8 +60,6 @@ def predict_from_ae(input_path, autoencoder, limit=10):
         img_img.save("output/" + filename + "_true.png")
         reconstruction_img.save("output/" + filename + "_pred.png")
 
-
-    #bpp = np.sum(compressed_size) / (64**2*len(img_list))
     bpp = (np.sum(size_list) + np.sum(dic_size)) / (min(limit, len(img_list))*np.product(INPUT_SHAPE))
     psnr = np.mean(psnr_list)
 
