@@ -23,6 +23,7 @@ def predict_from_ae(input_path, autoencoder, limit=10):
     psnr_list = []
     size_list = []
     dic_size = []
+    tx_list = []
     for img_idx in range(min(limit, len(img_list))):
         img = PIL.Image.open(img_list[img_idx])
         img_img = img.resize(INPUT_SHAPE[0:2], PIL.Image.ANTIALIAS)
@@ -32,10 +33,10 @@ def predict_from_ae(input_path, autoencoder, limit=10):
 
 
         codes = reconstruction[0]
-        mapping, _, compressed_size = huffman_coding(codes)
+        mapping, original_size, compressed_size = huffman_coding(codes)
         size_list += [compressed_size]
-
-        print(mapping)
+        tx_list += [1- compressed_size/original_size]
+        print(tx_list)
 
         dic_size += [len(code[1]) for code in mapping]
         
@@ -45,12 +46,13 @@ def predict_from_ae(input_path, autoencoder, limit=10):
         reconstruction = reconstruction.reshape(*INPUT_SHAPE)
 
 
-        mse = np.mean((img - reconstruction) ** 2)
+        mse = np.mean((img * 255 - reconstruction) ** 2)
         mse_list += [mse]
         
         psnr = 10 * np.log(255**2/mse)/np.log(10)
         psnr_list += [psnr]
 
+        
         print('img {} mse : {} psnr : {}'.format(img_list[img_idx],mse,psnr))
         
         reconstruction_img = PIL.Image.fromarray(reconstruction)
